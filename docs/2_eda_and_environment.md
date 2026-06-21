@@ -1,103 +1,123 @@
 # EDA and Environment Analysis
 
-## What “EDA” means here
+## Purpose
 
-This is not a supervised train/test CSV competition. Useful exploration has
-three layers:
+This is a simulation competition, not a supervised train/test prediction task.
+EDA should reduce uncertainty about decisions the agent or deck designer can
+actually change. It has three connected layers:
 
-1. **Card-pool EDA** — card types, stages, HP, energy costs, attack damage,
-   rules, missingness, and duplicate representations.
-2. **Deck EDA** — legality, card counts, evolution lines, energy balance, setup
-   consistency, and searchable targets.
-3. **Episode EDA** — decision contexts, legal-option counts, action frequency,
-   game length, terminal reasons, seat effects, and matchup outcomes.
+1. **Card-pool EDA** - representation, card roles, HP, retreat, attacks, costs,
+   effects, missingness, and duplicate move rows.
+2. **Deck EDA** - legality, functional roles, setup consistency, evolution
+   support, energy balance, retreat burden, and attack readiness.
+3. **Episode EDA** - legal choices, action sequences, board development, seat
+   effects, terminal reasons, runtime, and matchup outcomes.
 
-## Official files
+The refined notebook follows that order and ends with decisions rather than a
+collection of disconnected charts.
 
-The English and Japanese card catalogues are CSV files. The official sample
-submission provides `main.py`, `deck.csv`, the `cg` Python API, and Windows and
-Linux simulator binaries. Two large card-ID PDFs are reference material and
-should not be committed.
+## Recommended notebook flow
 
-The English catalogue includes identifiers, names, expansion and collection
-number, stage/type, rule/category, previous stage, HP, Pokémon/energy type,
-weakness, resistance, retreat cost, move name, cost, damage, and effect text.
-A card can occupy multiple rows when it has multiple moves, so row count is
-not card count. Aggregate by `Card ID` before making deck-level conclusions.
+| Stage | Question answered | Output used downstream |
+| --- | --- | --- |
+| 1. Provenance and schema | Are inputs present and represented safely? | Stable paths and normalized columns |
+| 2. Catalogue grain | Is a row a card or a card-move record? | One identity row per `Card ID` plus a separate move table |
+| 3. Card-pool landscape | What roles and printed stat ranges exist? | Context for deck-level comparisons |
+| 4. Deck audit | Is the 60-card list recognized and plausibly legal? | Executable validation gate |
+| 5. Setup consistency | How often can the deck open a Basic Pokemon? | Deck-construction priority |
+| 6. Evolution support | Are evolution cards structurally live? | Development-action rationale |
+| 7. Attack efficiency | What printed damage and energy requirements are available? | Features for action scoring |
+| 8. PDF audit | Is a targeted visual lookup necessary? | Bounded manual verification |
+| 9. Decision summary | What changes next, and what stays fixed? | Controlled experiment plan |
 
-## Required audits
+Run [`notebooks/01_card_database_eda.ipynb`](../notebooks/01_card_database_eda.ipynb)
+for the executable analysis.
 
-### Catalogue quality
+## Official files and data grain
 
-- Normalize column names and explicit `n/a` values.
-- Check uniqueness at `(Card ID, Move Name)` rather than raw rows alone.
-- Count unique cards separately from move rows.
-- Parse HP, retreat, and printed damage conservatively; effect-dependent
-  damage strings are not always plain integers.
-- Compare English and Japanese ID coverage without assuming translated text is
-  row-aligned.
+The English and Japanese card catalogues are CSV files. The sample submission
+provides `main.py`, `deck.csv`, the `cg` Python API, and Windows and Linux
+simulator binaries. The large card-ID PDFs are visual references and should not
+be committed.
 
-### Deck legality
+The English catalogue contains 2,022 rows but 1,267 unique card IDs. A card can
+occupy multiple rows when it has multiple moves, so row count is not card count.
+Use `Card ID` as the stable identity key, create one identity record per card,
+and retain attacks as a one-to-many table. Missing HP or evolution fields on
+Trainer and Energy cards are structural, not values to impute globally.
 
-- Exactly 60 card IDs.
-- Every ID exists in the official catalogue.
-- Card-copy, basic-energy, ACE SPEC, and other construction rules must be
-  checked against both catalogue metadata and current game rules.
-- At least one Basic Pokémon must be available for setup.
-- Evolution cards should have supported lower stages.
+## Validated starter-deck findings
 
-The starter deck contains many repeated Basic Water Energy cards. That is
-expected because basic energy is exempt from the ordinary four-copy limit; a
-naive duplicate-count check would falsely reject it.
+The refined notebook executed successfully against the local competition data.
+Its starter deck contains 60 cards across nine unique IDs:
 
-### Episode telemetry
+- 35 Basic Water Energy cards;
+- 10 Pokemon cards: six Basic and four Stage 1;
+- 15 Trainer/Tool/Item cards;
+- six printed moves, including two variable-damage moves;
+- weighted retreat cost of 34 across Pokemon copies.
 
-For every game, retain:
+The most important result is setup consistency. With six Basic Pokemon in a
+60-card deck, the exact hypergeometric probability that a seven-card opening
+hand contains at least one Basic is:
+
+```text
+P(setup) = 1 - C(54, 7) / C(60, 7) = 0.5414
+P(no Basic / mulligan)                 = 0.4586
+```
+
+This 45.86% no-Basic risk is more actionable than another broad catalogue plot.
+The Stage 1 evolution line is structurally supported at 100% by copy count, so
+the main deck-level concern is opening consistency rather than a dead evolution
+line. Simulator initialization remains the authoritative legality check.
+
+## Analysis-to-strategy bridge
+
+| Evidence | Interpretation | Action |
+| --- | --- | --- |
+| Only 54.14% opening setup probability | Policy cannot repair a no-Basic opening | Later test Basic-Pokemon count as an isolated deck intervention |
+| Evolution support rate is 100% | Development actions can unlock live Stage 1 cards | Preserve evolution and early board-development opportunities |
+| Two variable-damage moves | Printed damage is an incomplete action-value estimate | Use state-aware simulator telemetry, not damage alone |
+| Development-first beat attack-first `37-0-3` | Premature aggression was a causal weakness | Keep development-first as the control policy |
+| Development-first beat random `32-0-8` | The promoted ordering is a meaningful baseline | Test only one policy exception at a time |
+
+The next policy experiment should add an **immediate-knockout exception** to the
+promoted development-first agent. Keep the deck fixed during that experiment.
+After measuring the policy change, test increased Basic-Pokemon count separately;
+changing policy and deck together would make the result impossible to attribute.
+
+## Episode telemetry
+
+Every controlled game should retain:
 
 | Field | Why it matters |
 | --- | --- |
 | seed and seat | Reproducibility and first/second-player bias |
 | candidate version | Traceability |
-| result and terminal reason | Actual optimization target and failures |
+| result and terminal reason | Objective outcome and failure diagnosis |
 | turns and decisions | Runtime and game-length profile |
 | `SelectContext` frequency | Where the policy spends decisions |
 | legal-option count | Branching-factor estimate |
-| action-type frequency | Detects dead or overused strategic branches |
+| action-type frequency | Dead or overused strategic branches |
+| board state at attacks | Whether aggression follows adequate development |
 
-## Analysis-to-strategy bridge
+Across 120 completed sequencing games, development-first beat attack-first
+`37-0-3` and random `32-0-8`, with no simulator failures. At attack decisions it
+had more attached Energy and a larger Bench, supporting the interpretation that
+early development?not blind aggression?was the missing behavior.
 
-- High setup failure or mulligan rates point to deck construction, not search.
-- Large seat effects require paired evaluation and may justify different
-  first-player choices.
-- A few high-branching contexts suggest where shallow lookahead has the best
-  computational return.
-- Repeated losses after legal execution call for board-value and hidden-state
-  improvements; validation crashes call for contract hardening first.
-
-Run `notebooks/01_card_database_eda.ipynb` for the executable catalogue and
-starter-deck audit.
+The remaining episode-EDA gap is opponent diversity and terminal-reason detail.
+Future evidence should include frozen stronger opponents or ladder replays,
+prize trajectories, knockout timing, deck-out frequency, and revealed-card
+beliefs.
 
 ## Card-reference PDF policy
 
-The English Card ID PDF is a 1,306-page visual reference that maps simulator IDs
-to card names, expansions, collection numbers, and images. Use the CSV for
-programmatic analysis and join logic. Render only selected PDF pages when a card
-image, printed layout, or special-rule presentation must be checked manually.
-The Japanese PDF has identical content in another language and does not need a
-separate analytical pass unless translation consistency becomes relevant.
+The 1,306-page English Card ID PDF maps simulator IDs to names, expansions,
+collection numbers, and images. Use the CSV for programmatic joins. Render only
+selected pages when card art, printed layout, or special-rule presentation must
+be checked manually. The repository audit sampled pages 1, 2, 654, 1,305, and
+1,306 from the 137.65 MB file.
 
-Do not OCR or redistribute the full card-image corpus. Record sampled page
-numbers and findings so visual checks remain reproducible and competition-only.
-
-## Episode EDA findings
-
-The action-sequencing experiment converted the initial action-count diagnosis
-into state-aware evidence. Across 120 games, development-first beat attack-first
-`37-0-3` and random `32-0-8`, with no simulator failures. At attack decisions,
-the promoted policy had materially more attached Energy and a larger Bench than
-the attack-first control, confirming premature aggression as a causal weakness.
-
-The remaining EDA gap is opponent diversity and terminal-reason analysis. The
-next evidence set should include frozen stronger agents or exported ladder
-replays, prize trajectories, knockout timing, deck-out frequency, and revealed
-opponent-card beliefs.
+Do not bulk-OCR or redistribute the card-image corpus. Record sampled pages and
+findings so visual checks remain bounded and reproducible.

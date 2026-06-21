@@ -40,7 +40,7 @@ EDA = [
     first agent experiments?
 
     This is a simulation competition: EDA means catalogue, deck, state-space,
-    and episode analysis?not train/test target exploration. Run with the
+    and episode analysis - not train/test target exploration. Run with the
     `pokemon-tcg-ai-battle` competition data attached. A local `data/raw`
     fallback is supported.
     """),
@@ -53,10 +53,12 @@ EDA = [
     """),
     code("""
     from collections import Counter
+    from math import comb
     from pathlib import Path
     import re
 
     import matplotlib.pyplot as plt
+    import numpy as np
     import pandas as pd
     import seaborn as sns
 
@@ -82,9 +84,9 @@ EDA = [
     md("""
     ## 2. Schema and representation audit
 
-    We distinguish catalogue rows, unique card IDs, and card?move records.
+    We distinguish catalogue rows, unique card IDs, and card-move records.
     Structural missingness is expected: Energy and Trainer cards do not have
-    Pok?mon HP or evolution fields.
+    Pokemon HP or evolution fields.
     """),
     code("""
     raw = pd.read_csv(card_path)
@@ -188,7 +190,124 @@ EDA = [
     display(deck_view[(deck_view.copies > 4) & ~basic_energy])
     """),
     md("""
-    ## 5. Move structure and deck readiness
+    ## 5. Deck roles and setup consistency
+
+    A legal 60-card list can still be operationally fragile. The opening hand
+    needs at least one Basic Pokemon, so we compute the exact hypergeometric
+    setup probability and compare it with nearby Basic-Pokemon counts. This is
+    the most actionable deck-construction diagnostic in this EDA.
+    """),
+    code("""
+    def deck_role(value: object) -> str:
+        label = str(value)
+        if "Basic Energy" in label:
+            return "Basic Energy"
+        if label.startswith("Basic Pok"):
+            return "Basic Pokemon"
+        if "Pok" in label:
+            return "Evolution Pokemon"
+        for role in ("Supporter", "Item", "Tool", "Stadium", "Special Energy"):
+            if role in label:
+                return role
+        return "Other"
+
+    deck_view["role"] = deck_view[category_col].map(deck_role)
+    role_counts = deck_view.groupby("role", as_index=False).copies.sum()
+    role_counts["share_pct"] = role_counts.copies.div(len(deck)).mul(100).round(1)
+    display(role_counts.sort_values("copies", ascending=False))
+
+    ax = role_counts.sort_values("copies").plot.barh(
+        x="role", y="copies", legend=False, figsize=(9, 5), color="#2a788e"
+    )
+    ax.set(title="Starter-deck composition by functional role", xlabel="Cards", ylabel="")
+    plt.tight_layout()
+    plt.show()
+
+    OPENING_HAND_SIZE = 7
+    current_basic_count = int(
+        deck_view.loc[deck_view.role.eq("Basic Pokemon"), "copies"].sum()
+    )
+
+    def setup_probability(basic_count: int, deck_size: int = 60) -> float:
+        if basic_count <= 0:
+            return 0.0
+        return 1 - comb(deck_size - basic_count, OPENING_HAND_SIZE) / comb(
+            deck_size, OPENING_HAND_SIZE
+        )
+
+    setup_curve = pd.DataFrame({"basic_pokemon": np.arange(4, 17)})
+    setup_curve["setup_probability"] = setup_curve.basic_pokemon.map(setup_probability)
+    current_setup_probability = setup_probability(current_basic_count)
+    current_mulligan_probability = 1 - current_setup_probability
+
+    display(pd.Series({
+        "basic_pokemon": current_basic_count,
+        "opening_hand_size": OPENING_HAND_SIZE,
+        "p_at_least_one_basic": current_setup_probability,
+        "p_no_basic_mulligan": current_mulligan_probability,
+    }).to_frame("value"))
+
+    ax = setup_curve.plot(
+        x="basic_pokemon", y="setup_probability", marker="o", legend=False,
+        figsize=(9, 4), color="#2a788e"
+    )
+    ax.scatter([current_basic_count], [current_setup_probability], color="#d1495b", zorder=3)
+    ax.axhline(0.80, color="grey", linestyle="--", linewidth=1, label="80% reference")
+    ax.set(
+        title="Probability that a seven-card opening hand contains a Basic Pokemon",
+        xlabel="Basic Pokemon in 60-card deck", ylabel="Probability", ylim=(0, 1),
+    )
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+    """),
+    md("""
+    **Decision.** With only six Basic Pokemon, the starter deck has substantial
+    mulligan risk. Policy improvements cannot fully repair hands that fail to
+    set up; future deck experiments should vary Basic-Pokemon count separately
+    from policy experiments so their effects remain attributable.
+    """),
+    md("""
+    ## 6. Evolution-line support
+
+    Evolution cards are only actionable when their printed previous stage is
+    also present. We audit every evolution line by name and weight the result by
+    deck copies. This catches dead evolution cards without pretending to model
+    draw order or board state.
+    """),
+    code("""
+    deck_names = set(deck_view.card_name.dropna().astype(str))
+    evolution_columns = [
+        "card_id", "card_name", "previous_stage", "copies", "role"
+    ]
+    evolution_view = deck_counts.merge(
+        unique_cards[["card_id", "card_name", "previous_stage"]],
+        on="card_id", how="left"
+    )
+    evolution_view = evolution_view[evolution_view.previous_stage.notna()].copy()
+    evolution_view["previous_stage_in_deck"] = evolution_view.previous_stage.isin(deck_names)
+    evolution_view["support_copies"] = evolution_view.previous_stage.map(
+        deck_view.set_index("card_name").copies
+    ).fillna(0).astype(int)
+    display(evolution_view[evolution_columns[:-1] + ["previous_stage_in_deck", "support_copies"]])
+
+    evolution_copies = int(evolution_view.copies.sum())
+    supported_evolution_copies = int(
+        evolution_view.loc[evolution_view.previous_stage_in_deck, "copies"].sum()
+    )
+    evolution_support_rate = (
+        supported_evolution_copies / evolution_copies if evolution_copies else 1.0
+    )
+    print(f"Evolution support rate by copies: {evolution_support_rate:.1%}")
+    """),
+    md("""
+    **Decision.** The current Stage 1 line is structurally supported. The agent
+    should therefore preserve evolution opportunities and favor development
+    actions early, while episode telemetry determines whether those cards are
+    drawn and sequenced reliably in practice.
+    """),
+    md("""
+    ## 7. Move structure and attack efficiency
 
     The first Kaggle run confirmed a 60-card starter deck with only nine unique
     IDs. That concentration makes aggregate catalogue plots insufficient: we
@@ -208,14 +327,30 @@ EDA = [
     )
     moves["energy_symbols"] = moves.cost.fillna("").str.count(r"\{[^}]+\}")
     moves["variable_damage"] = moves.damage.notna() & moves.printed_damage.isna()
+    moves["damage_per_energy"] = moves.damage_floor.div(
+        moves.energy_symbols.replace(0, np.nan)
+    )
 
     deck_moves = moves[moves.card_id.isin(deck_counts.card_id)].merge(
         deck_counts, on="card_id", how="left"
     ).sort_values(["copies", "card_id", "move_name"], ascending=[False, True, True])
     display(deck_moves[
         ["card_id", "card_name", "copies", "move_name", "cost", "damage",
-         "energy_symbols", "variable_damage"]
+         "energy_symbols", "damage_per_energy", "variable_damage"]
     ])
+
+    plotted_moves = deck_moves.dropna(subset=["damage_floor", "energy_symbols"]).copy()
+    if not plotted_moves.empty:
+        ax = sns.scatterplot(
+            data=plotted_moves, x="energy_symbols", y="damage_floor",
+            hue="card_name", size="copies", sizes=(70, 220), s=120
+        )
+        ax.set(
+            title="Printed damage floor versus attack energy requirement",
+            xlabel="Printed energy symbols", ylabel="Damage floor"
+        )
+        plt.tight_layout()
+        plt.show()
 
     deck_detail = deck_view.copy()
     deck_detail["weighted_retreat"] = (
@@ -230,13 +365,21 @@ EDA = [
         "deck_moves": len(deck_moves),
         "variable_damage_moves": int(deck_moves.variable_damage.sum()),
         "weighted_retreat_cost": float(deck_detail.weighted_retreat.sum()),
+        "basic_pokemon": current_basic_count,
+        "opening_setup_probability": current_setup_probability,
+        "opening_mulligan_probability": current_mulligan_probability,
+        "evolution_support_rate": evolution_support_rate,
     })
     display(deck_summary.to_frame("value"))
     """),
     code("""
     import json
 
-    output = Path("/kaggle/working") if Path("/kaggle/working").exists() else Path(".")
+    if Path("/kaggle/working").exists():
+        output = Path("/kaggle/working")
+    else:
+        output = Path("../scratch") if Path.cwd().name == "notebooks" else Path("scratch")
+        output.mkdir(parents=True, exist_ok=True)
     eda_summary = {
         "catalogue_rows": int(len(cards)),
         "unique_card_ids": int(cards.card_id.nunique()),
@@ -250,7 +393,7 @@ EDA = [
     print(f"Saved summary to {output / 'card_eda_summary.json'}")
     """),
     md("""
-    ## 6. Card-reference PDF audit
+    ## 8. Card-reference PDF audit
 
     The official English PDF is a visual lookup from simulator card ID to card
     name, expansion, collection number, and card image. The CSV remains the
@@ -300,17 +443,30 @@ EDA = [
     (output / "card_eda_summary.json").write_text(json.dumps(eda_summary, indent=2))
     """),
     md("""
-    ## 7. Findings and next experiment
+    ## 9. Decision summary and next experiment
 
-    - Preserve card ID as the stable join key.
-    - Separate card identity from attacks before creating value tables.
-    - Interpret missingness by category.
-    - Use simulator initialization as the final executable deck check.
-    - Use deck-specific move summaries to design action scorers.
-    - Next, run comparative evaluation and capture named context telemetry.
+    The EDA now answers a sequence of operational questions rather than merely
+    cataloguing columns:
 
-    **Limitation.** Printed card data does not reveal strategic synergy or
-    opponent prevalence. Those require controlled episode evidence.
+    1. **Can the data be joined safely?** Yes - use card ID and keep card moves
+       separate from card identity.
+    2. **Can the deck initialize?** Yes - the list has 60 recognized cards and
+       no non-Basic-Energy entry above four copies.
+    3. **Can it set up consistently?** This is the principal weakness: only six
+       Basic Pokemon create substantial opening-hand mulligan risk.
+    4. **Are evolutions structurally live?** Yes - the Stage 1 line has its
+       required previous stage in the deck.
+    5. **Can printed damage define the policy alone?** No - variable damage and
+       effects require simulator-backed episode evaluation.
+
+    **Next controlled experiment.** Keep the promoted development-first policy
+    fixed and test one immediate-knockout exception. Do not change deck
+    construction in the same experiment. After that policy result is isolated,
+    test Basic-Pokemon count as a separate deck-consistency intervention.
+
+    **Limitation.** Printed card data does not reveal realized draw order,
+    strategic synergy, or opponent prevalence. Those require controlled episode
+    evidence with named-context telemetry.
     """),
 ]
 
