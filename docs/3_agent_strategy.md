@@ -80,8 +80,8 @@ unchanged.
 
 ## Near-term experiments
 
-1. State-aware damage estimation including resistance, prevention, and active effects.
-2. Attachment scoring based on turns-to-attack and target value.
+1. Attachment value scoring that balances printed damage, remaining Energy, evolution potential, and Active relevance.
+2. State-aware damage estimation including resistance, prevention, and active effects.
 3. Setup scoring using HP, retreat cost, and attack energy requirements.
 4. First-player choice tested with seat-swapped matches.
 5. Selective one-ply search for attack/retreat decisions.
@@ -124,3 +124,17 @@ Because the interval overlaps parity, the result is **HOLD**. Do not modify
 `agent/main.py`. Printed base damage omits resistance, temporary prevention or
 reduction, and conditional damage; a future candidate must improve that state
 model or gather a larger, opponent-diverse evidence set.
+
+## Attack-readiness attachment follow-up
+
+The attachment candidate preserved every non-ATTACH decision and changed only
+the target of an attachment already selected by development-first. Across 40
+Kaggle games it finished `20-0-20` (`0.500`) with a bootstrap 95% interval of
+`[0.350, 0.650]`, zero failures, and 84 target changes.
+
+The result is **HOLD**. Event inspection showed that minimizing distance to an
+attack threshold can overvalue Snover's 30-damage attack and divert Energy from
+Mega Abomasnow ex or Kyogre. The next scorer should optimize expected value per
+attachment, including printed damage, Energy still required, evolution
+potential, current Active relevance, and the cost of concentrating excess
+Energy. The production agent remains unchanged.

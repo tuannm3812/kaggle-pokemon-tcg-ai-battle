@@ -13,6 +13,7 @@ reaches a meaningful paired evaluation or Kaggle submission.
 | 2026-06-21 | `development-first-v2` | official random policy | starter | 40 seat-balanced games | 32-0-8 | 0.800 | bootstrap 95%: [0.675, 0.925] | Pass control screen |
 | 2026-06-21 | `development-first-v2` | official random policy, independent screen | starter | 40 seat-balanced games | 31-0-9 | 0.775 | bootstrap 95%: [0.650, 0.900] | Confirm promotion |
 | 2026-06-21 | `printed-knockout-v3` | development-first v2 | starter | 40 seat-balanced games | 25-0-15 | 0.625 | bootstrap 95%: [0.475, 0.775] | Hold; interval overlaps parity |
+| 2026-06-21 | `attachment-readiness-v4` | development-first v2 | starter | 40 seat-balanced games | 20-0-20 | 0.500 | bootstrap 95%: [0.350, 0.650] | Hold; readiness alone adds no value |
 
 ## Kaggle submissions
 
@@ -42,7 +43,7 @@ reaches a meaningful paired evaluation or Kaggle submission.
 | --- | --- | ---: | --- | --- |
 | 2026-06-21 | `pokemon-tcg-card-database-eda` | 3 | Complete | 1,267 cards plus bounded 1,306-page PDF-reference audit |
 | 2026-06-21 | `pokemon-tcg-agent-baseline-and-evaluation` | 5 | Complete | Promoted agent: 31-0-9, score rate 0.775 |
-| 2026-06-21 | `pokemon-tcg-action-sequence-experiment` | 3 | Complete | Knockout follow-up: 25-0-15, hold; zero failures |
+| 2026-06-21 | `pokemon-tcg-action-sequence-experiment` | 4 | Complete | Attachment follow-up: 20-0-20, hold; 84 target changes |
 | 2026-06-21 | `pokemon-tcg-submission-packaging` | 6 | Complete | Promoted-agent tar.gz, staged runtime, and hashes verified |
 
 The private Kaggle dataset

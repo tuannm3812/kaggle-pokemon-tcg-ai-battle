@@ -1120,7 +1120,7 @@ SEQUENCING = [
     shutil.copy2(agent_dir / "deck.csv", WORK_DIR / "deck.csv")
     sys.path.insert(0, str(WORK_DIR))
 
-    from cg.api import OptionType, SelectContext, SelectType, all_attack, to_observation_class
+    from cg.api import AreaType, OptionType, SelectContext, SelectType, all_attack, all_card_data, to_observation_class
     from cg.game import battle_finish, battle_select, battle_start
 
     baseline = load_module("attack_first_baseline", WORK_DIR / "main.py")
@@ -1524,13 +1524,166 @@ SEQUENCING = [
     print(f"Updated evidence at {output / 'action_sequence_experiment.json'}")
     """),
     md("""
-    ## 8. Interpretation
+    ## 8. Follow-up: attack-readiness attachment scoring
+
+    This experiment preserves development-first action ordering and changes only
+    the target of an ATTACH action the baseline already selected. The scorer
+    first completes a Pokemon's strongest reliable printed-damage attack
+    threshold, otherwise advances the closest threshold, and deprioritizes
+    targets already at that threshold. Hand-card selection and all non-ATTACH
+    decisions retain the baseline's stable ordering.
+    """),
+    code("""
+    card_by_id = {card.cardId: card for card in all_card_data()}
+    attachment_module = load_module("attachment_scoring_candidate", WORK_DIR / "main.py")
+    attachment_module.MAIN_ACTION_PRIORITY = development_priority.copy()
+
+    def attack_profile(card_id: int) -> tuple[int, int]:
+        card = card_by_id[card_id]
+        attacks = [attack_by_id[attack_id] for attack_id in card.attacks]
+        reliable = [attack for attack in attacks if int(attack.damage) > 0]
+        if not reliable:
+            return 1, 0
+        strongest = max(reliable, key=lambda attack: (int(attack.damage), -len(attack.energies)))
+        return len(strongest.energies), int(strongest.damage)
+
+    def attachment_target(obs, option):
+        player = obs.current.players[int(obs.current.yourIndex)]
+        if int(option.inPlayArea) == int(AreaType.ACTIVE):
+            return player.active[0] if player.active else None
+        if int(option.inPlayArea) == int(AreaType.BENCH):
+            index = int(option.inPlayIndex)
+            return player.bench[index] if 0 <= index < len(player.bench) else None
+        return None
+
+    class AttachmentScoringPolicy:
+        def __init__(self, source_module):
+            self.source = source_module
+            self.events = []
+
+        def agent(self, obs_dict: dict) -> list[int]:
+            obs = to_observation_class(obs_dict)
+            baseline_action = self.source.agent(obs_dict)
+            if obs.select is None or obs.current is None or not baseline_action:
+                return baseline_action
+            baseline_option = obs.select.option[baseline_action[0]]
+            if (
+                int(obs.select.type) != int(SelectType.MAIN)
+                or int(baseline_option.type) != int(OptionType.ATTACH)
+            ):
+                return baseline_action
+
+            scored = []
+            for index, option in enumerate(obs.select.option):
+                if int(option.type) != int(OptionType.ATTACH):
+                    continue
+                target = attachment_target(obs, option)
+                if target is None:
+                    continue
+                threshold, printed_damage = attack_profile(int(target.id))
+                current_energy = len(target.energies)
+                after_energy = current_energy + 1
+                if current_energy < threshold <= after_energy:
+                    phase = 0  # Complete the useful attack threshold now.
+                elif after_energy < threshold:
+                    phase = 1  # Advance the closest unfinished threshold.
+                else:
+                    phase = 2  # Already ready; avoid unnecessary concentration.
+                remaining = max(threshold - after_energy, 0)
+                active_penalty = 0 if int(option.inPlayArea) == int(AreaType.ACTIVE) else 1
+                key = (
+                    phase, remaining, active_penalty, -printed_damage,
+                    self.source._stable_key(option, index),
+                )
+                scored.append((key, index, option, target, threshold, printed_damage))
+
+            if not scored:
+                return baseline_action
+            _, chosen_index, chosen_option, target, threshold, printed_damage = min(scored)
+            if chosen_index != baseline_action[0]:
+                baseline_target = attachment_target(obs, baseline_option)
+                self.events.append({
+                    "turn": int(obs.current.turn),
+                    "player": int(obs.current.yourIndex),
+                    "baseline_target_card": int(baseline_target.id) if baseline_target else None,
+                    "chosen_target_card": int(target.id),
+                    "chosen_target_area": enum_name(AreaType, chosen_option.inPlayArea),
+                    "energy_before": len(target.energies),
+                    "attack_threshold": threshold,
+                    "strongest_printed_damage": printed_damage,
+                })
+            return [chosen_index]
+
+    attachment_candidate = AttachmentScoringPolicy(attachment_module)
+    """),
+    code("""
+    attachment_results, attachment_snapshots, attachment_events = [], [], []
+    game_id = 20_000
+    for focal_player in (0, 1):
+        for repetition in range(GAMES_PER_SEAT):
+            before = len(attachment_candidate.events)
+            policies = {
+                focal_player: attachment_candidate,
+                1 - focal_player: candidate,
+            }
+            result, game_snapshots = play_game(
+                policies, focal_player, game_id, "attachment_vs_development"
+            )
+            attachment_results.append(result)
+            attachment_snapshots.extend(game_snapshots)
+            for event in attachment_candidate.events[before:]:
+                attachment_events.append({
+                    **event, "game": game_id, "focal_player": focal_player,
+                })
+            game_id += 1
+
+    attachment_df = pd.DataFrame(attachment_results)
+    attachment_failures = attachment_df[attachment_df.status != "finished"]
+    assert attachment_failures.empty, attachment_failures.to_dict("records")
+    scores = attachment_df.focal_score.to_numpy(dtype=float)
+    boot = rng.choice(scores, size=(BOOTSTRAP_SAMPLES, len(scores)), replace=True).mean(axis=1)
+    attachment_summary = {
+        "matchup": "attachment_vs_development",
+        "games": len(scores),
+        "wins": int((scores == 1).sum()),
+        "draws": int((scores == 0.5).sum()),
+        "losses": int((scores == 0).sum()),
+        "score_rate": float(scores.mean()),
+        "ci_low": float(np.quantile(boot, 0.025)),
+        "ci_high": float(np.quantile(boot, 0.975)),
+        "target_changes": len(attachment_events),
+    }
+    if attachment_summary["ci_low"] > 0.5:
+        attachment_decision = "PROMOTE: attachment scoring clearly beats development-first"
+    elif attachment_summary["ci_high"] < 0.5:
+        attachment_decision = "REJECT: attachment scoring is clearly worse"
+    else:
+        attachment_decision = "HOLD: result overlaps parity"
+    display(pd.Series(attachment_summary).to_frame("value"))
+    print(f"Attachment decision: {attachment_decision}")
+    display(pd.DataFrame(attachment_events).head(20))
+    """),
+    code("""
+    payload["attachment_followup"] = {
+        "single_change": "score the target of baseline-selected ATTACH actions",
+        "summary": attachment_summary,
+        "decision": attachment_decision,
+        "results": attachment_results,
+        "target_change_events": attachment_events,
+        "snapshots": attachment_snapshots,
+    }
+    (output / "action_sequence_experiment.json").write_text(
+        json.dumps(payload, indent=2, default=str)
+    )
+    print(f"Updated evidence at {output / 'action_sequence_experiment.json'}")
+    """),
+    md("""
+    ## 9. Interpretation
 
     The original sequencing result promotes development-first over attack-first.
-    The follow-up is a separate gate: promote the knockout exception only if it
-    beats the frozen development-first control without runtime failures. A hold
-    means collect more games or improve state-aware damage estimation; it is not
-    evidence to change the production agent.
+    Each follow-up has a separate gate and frozen control. Promote attachment
+    scoring only if it beats development-first without runtime failures; a hold
+    or rejection leaves `agent/main.py` unchanged.
     """),
 ]
 

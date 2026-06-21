@@ -91,10 +91,11 @@ Development-first beat attack-first `37-0-3` (`0.925`, bootstrap 95% interval
 interval `[0.650, 0.900]`).
 
 This agent passes the random-control screen but is not yet ladder-proven. A
-printed-damage immediate-knockout exception scored `25-0-15` (`0.625`) against
-development-first, but its 95% interval `[0.475, 0.775]` crossed parity, so the
-change is held and the production agent remains unchanged. The next experiment
-should improve damage-state awareness or test card-aware attachment scoring.
+printed-damage knockout exception was held at `25-0-15` because its uncertainty
+crossed parity. Attack-readiness attachment scoring then produced exact parity
+at `20-0-20` (`0.500`, 95% interval `[0.350, 0.650]`) despite 84 target changes.
+Both candidates are held and the production agent remains unchanged. The next
+experiment should score value per attachment rather than threshold distance.
 
 ## Kaggle validation
 
@@ -104,7 +105,7 @@ The complete workflow was run on Kaggle on 21 June 2026:
 | --- | --- | --- |
 | [Card Database EDA](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-card-database-eda) | Complete | 1,267 cards plus bounded PDF-reference audit |
 | [Agent Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | Promoted agent passed random screen at 0.775 |
-| [Action Sequence Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-action-sequence-experiment) | Complete | Development-first promoted; knockout follow-up held at 25-0-15 |
+| [Action Sequence Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-action-sequence-experiment) | Complete | Development-first promoted; knockout and attachment follow-ups held |
 | [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | Promoted-agent tar.gz and hashes verified |
 
 The agent source is mounted from a private Kaggle dataset and credentials remain
