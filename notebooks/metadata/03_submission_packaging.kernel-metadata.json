@@ -1,0 +1,13 @@
+{
+  "id": "tuannm3812/pokemon-tcg-submission-packaging",
+  "title": "Pokemon TCG - Submission Packaging",
+  "code_file": "03_submission_packaging_and_validation.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": false,
+  "competition_sources": ["pokemon-tcg-ai-battle"],
+  "dataset_sources": ["tuannm3812/pokemon-tcg-ai-battle-agent-source"],
+  "kernel_sources": []
+}

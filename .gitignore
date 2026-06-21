@@ -1,0 +1,26 @@
+# Credentials and local secrets
+kaggle.json
+kaggle_*.json
+.env
+
+# Python and notebook state
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Kaggle downloads and generated artifacts
+data/
+scratch/
+outputs/
+submission.zip
+*.dll
+*.so
+*.pdf
+
+# Local tooling
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
