@@ -41,7 +41,8 @@ competition. Code defensively and retain a legal fallback.
 ## Submission policy
 
 Kaggle states that a team may submit up to five agents each day and only its
-latest two submissions are tracked for final submissions. Treat those two
+latest two submissions are tracked for final submissions. The uploaded artifact must be a
+`.tar.gz` bundle with `main.py` and `deck.csv` at the archive root. Treat those two
 slots as scarce: keep one stable control and one candidate whenever possible.
 
 After the submission deadline, new submissions are locked and games continue

@@ -59,7 +59,7 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
    disabled. It copies the official SDK into `/kaggle/working`, loads the
    repository policy, and runs paired self-play smoke tests.
 4. Run `03_submission_packaging_and_validation.ipynb`. Download its
-   `submission.zip`, then submit it on the competition page.
+   `submission.tar.gz`, then submit it on the competition page.
 5. Record the validation state, ladder rating, uncertainty, episode count, and
    decision in `docs/6_experiment_log.md`.
 
@@ -94,6 +94,12 @@ The next meaningful upgrade is state-aware scoring of attacks, energy
 attachments, evolutions, and setup choices, evaluated against frozen opponents
 with seat-swapped paired games.
 
+The latest Kaggle screen rejects this baseline for ladder use: it scored
+`5-0-35` against the official random control (`0.125`, bootstrap 95% interval
+`[0.025, 0.225]`). Candidate telemetry shows 322 attack selections but only 64
+attachments, versus 139 attacks and 228 attachments for the control. The next
+policy change should prevent premature attacks and value board development.
+
 
 ## Kaggle validation
 
@@ -101,9 +107,9 @@ The complete workflow was run on Kaggle on 21 June 2026:
 
 | Notebook | Status | Evidence |
 | --- | --- | --- |
-| [Card Database EDA](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-card-database-eda) | Complete | Official catalogue and starter-deck audit |
-| [Agent Baseline and Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | 4/4 self-play games finished without contract errors |
-| [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | 9-member ZIP verified; hashes match repository sources |
+| [Card Database EDA](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-card-database-eda) | Complete | 1,267 cards plus bounded PDF-reference audit |
+| [Agent Baseline and Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | 40 control games; baseline rejected at 0.125 score rate |
+| [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | Staged runtime game and exact tar.gz source/archive hashes verified |
 
 The agent source is mounted from a private Kaggle dataset and credentials remain
 outside this repository.

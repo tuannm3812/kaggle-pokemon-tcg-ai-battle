@@ -85,3 +85,16 @@ it does not yet understand card value, attack damage, or the board.
 3. Attachment scoring based on turns-to-attack.
 4. First-player choice tested with seat-swapped matches.
 5. Selective one-ply search for attack/retreat decisions.
+
+## Evidence from the first comparative screen
+
+The deterministic baseline is contract-safe but lost `5-0-35` to the official
+random policy over 40 seat-balanced games. Its score rate was `0.125` with a
+bootstrap 95% interval of `[0.025, 0.225]`, so it must not be submitted.
+
+Policy-attributed telemetry identifies premature aggression as the leading
+hypothesis: the candidate selected attack 322 times and attach only 64 times,
+while the control selected attack 139 times and attach 228 times. The next
+single-change experiment should move attack behind safe board-development
+actions, then add state-aware knockout and retaliation scoring. Preserve this
+baseline as a reliability control, not a strength control.

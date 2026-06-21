@@ -1,4 +1,4 @@
-"""Deterministic legality-first baseline for PokÃ©mon TCG AI Battle."""
+"""Deterministic legality-first baseline for Pok?mon TCG AI Battle."""
 
 from __future__ import annotations
 

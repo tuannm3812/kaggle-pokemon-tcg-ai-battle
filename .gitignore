@@ -13,6 +13,7 @@ venv/
 # Kaggle downloads and generated artifacts
 data/
 scratch/
+tmp/
 outputs/
 submission.zip
 *.dll
@@ -24,3 +25,4 @@ submission.zip
 Thumbs.db
 .idea/
 .vscode/
+/notebooks/card_eda_summary.json

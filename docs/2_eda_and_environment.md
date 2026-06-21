@@ -76,3 +76,15 @@ For every game, retain:
 
 Run `notebooks/01_card_database_eda.ipynb` for the executable catalogue and
 starter-deck audit.
+
+## Card-reference PDF policy
+
+The English Card ID PDF is a 1,306-page visual reference that maps simulator IDs
+to card names, expansions, collection numbers, and images. Use the CSV for
+programmatic analysis and join logic. Render only selected PDF pages when a card
+image, printed layout, or special-rule presentation must be checked manually.
+The Japanese PDF has identical content in another language and does not need a
+separate analytical pass unless translation consistency becomes relevant.
+
+Do not OCR or redistribute the full card-image corpus. Record sampled page
+numbers and findings so visual checks remain reproducible and competition-only.

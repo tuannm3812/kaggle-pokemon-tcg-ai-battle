@@ -32,9 +32,9 @@ not prove ladder strength.
 
 Run `03_submission_packaging_and_validation.ipynb`. It creates a clean staging
 directory, copies the official `cg` runtime plus the version-controlled policy
-and deck, runs static checks, and writes `/kaggle/working/submission.zip`.
+and deck, runs static checks, and writes `/kaggle/working/submission.tar.gz`.
 
-Inspect the archive member list. `main.py` and `deck.csv` must be at the archive
+Inspect the tarball member list. `main.py` and `deck.csv` must be at the archive
 root, with the SDK under `cg/`; an accidental extra parent directory can make
 an otherwise correct agent fail validation.
 

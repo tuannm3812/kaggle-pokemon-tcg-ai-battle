@@ -40,7 +40,7 @@ EDA = [
     first agent experiments?
 
     This is a simulation competition: EDA means catalogue, deck, state-space,
-    and episode analysisâ€”not train/test target exploration. Run with the
+    and episode analysis?not train/test target exploration. Run with the
     `pokemon-tcg-ai-battle` competition data attached. A local `data/raw`
     fallback is supported.
     """),
@@ -82,9 +82,9 @@ EDA = [
     md("""
     ## 2. Schema and representation audit
 
-    We distinguish catalogue rows, unique card IDs, and cardâ€“move records.
+    We distinguish catalogue rows, unique card IDs, and card?move records.
     Structural missingness is expected: Energy and Trainer cards do not have
-    PokÃ©mon HP or evolution fields.
+    Pok?mon HP or evolution fields.
     """),
     code("""
     raw = pd.read_csv(card_path)
@@ -188,13 +188,126 @@ EDA = [
     display(deck_view[(deck_view.copies > 4) & ~basic_energy])
     """),
     md("""
-    ## 5. Findings and next experiment
+    ## 5. Move structure and deck readiness
+
+    The first Kaggle run confirmed a 60-card starter deck with only nine unique
+    IDs. That concentration makes aggregate catalogue plots insufficient: we
+    need to inspect the attacks, energy requirements, evolution support, and
+    retreat burden of cards the baseline can actually draw.
+    """),
+    code("""
+    move_columns = [
+        "card_id", "card_name", "move_name", "cost", "damage",
+        "effect_explanation",
+    ]
+    moves = cards[[column for column in move_columns if column in cards]].copy()
+    moves = moves[moves.move_name.notna()].copy()
+    moves["printed_damage"] = pd.to_numeric(moves.damage, errors="coerce")
+    moves["damage_floor"] = pd.to_numeric(
+        moves.damage.astype(str).str.extract(r"(\d+)")[0], errors="coerce"
+    )
+    moves["energy_symbols"] = moves.cost.fillna("").str.count(r"\{[^}]+\}")
+    moves["variable_damage"] = moves.damage.notna() & moves.printed_damage.isna()
+
+    deck_moves = moves[moves.card_id.isin(deck_counts.card_id)].merge(
+        deck_counts, on="card_id", how="left"
+    ).sort_values(["copies", "card_id", "move_name"], ascending=[False, True, True])
+    display(deck_moves[
+        ["card_id", "card_name", "copies", "move_name", "cost", "damage",
+         "energy_symbols", "variable_damage"]
+    ])
+
+    deck_detail = deck_view.copy()
+    deck_detail["weighted_retreat"] = (
+        pd.to_numeric(deck_detail.retreat, errors="coerce").fillna(0)
+        * deck_detail.copies
+    )
+    deck_summary = pd.Series({
+        "cards": len(deck),
+        "unique_ids": len(deck_counts),
+        "basic_energy_cards": int(deck_view.loc[basic_energy, "copies"].sum()),
+        "non_energy_cards": int(deck_view.loc[~basic_energy, "copies"].sum()),
+        "deck_moves": len(deck_moves),
+        "variable_damage_moves": int(deck_moves.variable_damage.sum()),
+        "weighted_retreat_cost": float(deck_detail.weighted_retreat.sum()),
+    })
+    display(deck_summary.to_frame("value"))
+    """),
+    code("""
+    import json
+
+    output = Path("/kaggle/working") if Path("/kaggle/working").exists() else Path(".")
+    eda_summary = {
+        "catalogue_rows": int(len(cards)),
+        "unique_card_ids": int(cards.card_id.nunique()),
+        "deck": {key: float(value) for key, value in deck_summary.items()},
+        "deck_card_ids": {str(int(row.card_id)): int(row.copies)
+                          for row in deck_counts.itertuples()},
+    }
+    (output / "card_eda_summary.json").write_text(
+        json.dumps(eda_summary, indent=2)
+    )
+    print(f"Saved summary to {output / 'card_eda_summary.json'}")
+    """),
+    md("""
+    ## 6. Card-reference PDF audit
+
+    The official English PDF is a visual lookup from simulator card ID to card
+    name, expansion, collection number, and card image. The CSV remains the
+    computational source of truth; bulk OCR would be slower, noisier, and would
+    unnecessarily reproduce protected card content.
+
+    A repository audit of the 137.7 MB English document found 1,306 pages and
+    rendered pages 1, 2, 654, 1,305, and 1,306 for structural sampling. Set
+    `RUN_PDF_RENDER = True` only when a human needs to resolve a visual ambiguity.
+    """),
+    code("""
+    RUN_PDF_RENDER = False
+    PDF_SAMPLE_PAGES = (1, 2, 654, 1305, 1306)
+    pdf_candidates = sorted(Path("/kaggle/input").rglob("*List_EN.pdf"))
+    if not pdf_candidates:
+        pdf_candidates = sorted(Path("../tmp/pdfs").glob("*.pdf"))
+    pdf_path = pdf_candidates[0] if pdf_candidates else None
+
+    pdf_audit = {
+        "role": "visual card-ID reference; CSV is the analysis source",
+        "observed_pages": 1306,
+        "sampled_pages": list(PDF_SAMPLE_PAGES),
+        "file_found": pdf_path is not None,
+        "size_mb": round(pdf_path.stat().st_size / 1_000_000, 2) if pdf_path else None,
+    }
+    display(pd.Series(pdf_audit).to_frame("value"))
+
+    if RUN_PDF_RENDER:
+        import fitz
+        from IPython.display import display as display_image
+        from PIL import Image
+
+        if pdf_path is None:
+            raise FileNotFoundError("Attach the English Card ID PDF before rendering.")
+        document = fitz.open(pdf_path)
+        assert document.page_count == pdf_audit["observed_pages"]
+        for page_number in PDF_SAMPLE_PAGES:
+            page = document[page_number - 1]
+            pixmap = page.get_pixmap(matrix=fitz.Matrix(0.75, 0.75), alpha=False)
+            image = Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
+            print(f"Reference page {page_number}")
+            display_image(image)
+    else:
+        print("PDF rendering skipped by default; enable only for targeted visual review.")
+
+    eda_summary["pdf_reference"] = pdf_audit
+    (output / "card_eda_summary.json").write_text(json.dumps(eda_summary, indent=2))
+    """),
+    md("""
+    ## 7. Findings and next experiment
 
     - Preserve card ID as the stable join key.
     - Separate card identity from attacks before creating value tables.
     - Interpret missingness by category.
     - Use simulator initialization as the final executable deck check.
-    - Next, run the deterministic baseline and capture context telemetry.
+    - Use deck-specific move summaries to design action scorers.
+    - Next, run comparative evaluation and capture named context telemetry.
 
     **Limitation.** Printed card data does not reveal strategic synergy or
     opponent prevalence. Those require controlled episode evidence.
@@ -204,34 +317,45 @@ EDA = [
 
 EVALUATION = [
     md("""
-    # Deterministic Baseline and Local Evaluation
+    # Baseline Reliability and Comparative Evaluation
 
-    **Purpose.** Install the official simulator into Kaggle working storage,
-    load the version-controlled policy, and run legality-first self-play.
+    **Purpose.** Validate the repository policy against the official simulator,
+    then compare it with Kaggle's random sample policy across both player seats.
 
-    **Decision question.** Does this candidate execute reliably enough to
-    become a frozen control? Attach the competition data and a private dataset
-    containing this repository's `agent/` directory. Internet is unnecessary.
+    **Decision question.** Is the deterministic policy reliable, and does it
+    provide measurable improvement over the official control? This is an
+    offline screening result, not a ladder-rating estimate.
     """),
     md("""
-    ## 1. Configuration
+    ## 1. Configuration and reproducibility limits
 
-    A small smoke test catches API and packaging faults; it does not estimate
-    ladder strength. Increase volume only after all games terminate cleanly.
+    The previous run completed four self-play games but exposed only numeric
+    context IDs and no control comparison. This revision records named decision
+    contexts and action types, retains every failure, and balances candidate
+    games across both seats.
+
+    Python's random policy is seeded. The current simulator wrapper does not
+    expose its internal card-draw or coin-toss seed, so seat-balanced games are
+    independent repetitions rather than exact paired seeds.
     """),
     code("""
     from collections import Counter
     from pathlib import Path
     import importlib.util
     import json
+    import random
     import shutil
     import sys
     import time
 
+    import numpy as np
     import pandas as pd
 
-    N_GAMES = 4
+    CONTRACT_GAMES = 4
+    GAMES_PER_SEAT = 20
     MAX_DECISIONS = 10_000
+    BASE_SEED = 42
+    BOOTSTRAP_SAMPLES = 10_000
     WORK_DIR = Path("/kaggle/working/agent_eval")
     """),
     code("""
@@ -241,82 +365,145 @@ EVALUATION = [
             raise FileNotFoundError(f"No Kaggle input matched {pattern}")
         return matches[0]
 
+    def load_module(name: str, path: Path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
     sample_dir = first_match("sample_submission/main.py").parent
     candidates = [Path("../agent"), Path("agent")]
-    candidates += [x.parent for x in sorted(Path("/kaggle/input").rglob("main.py")) if "sample_submission" not in x.parts and "cg" not in x.parts]
+    candidates += [
+        path.parent for path in sorted(Path("/kaggle/input").rglob("main.py"))
+        if "sample_submission" not in path.parts and "cg" not in path.parts
+    ]
     repo_agent = next(
-        (x for x in candidates if (x / "main.py").exists() and (x / "deck.csv").exists()),
+        (path for path in candidates
+         if (path / "main.py").exists() and (path / "deck.csv").exists()),
         None,
     )
-    print(f"Official sample: {sample_dir}")
-    print(f"Repository agent: {repo_agent or 'not mounted; using official sample'}")
+    if repo_agent is None:
+        raise FileNotFoundError("Attach the private agent-source dataset.")
+    print(f"Official control: {sample_dir / 'main.py'}")
+    print(f"Candidate: {repo_agent / 'main.py'}")
     """),
     md("""
-    ## 2. Build an isolated environment
+    ## 2. Isolated simulator and policies
 
-    Copy the complete `cg` directory: its Python wrapper loads a platform
-    shared library. The disposable working directory is never the source of
-    truth for policy code.
+    The complete official `cg` directory is copied into working storage. The
+    candidate and control are loaded as separate modules, while both use the
+    same reviewed 60-card deck so this experiment isolates policy behavior.
     """),
     code("""
     if WORK_DIR.exists():
         shutil.rmtree(WORK_DIR)
     shutil.copytree(sample_dir, WORK_DIR)
-    if repo_agent:
-        shutil.copy2(repo_agent / "main.py", WORK_DIR / "main.py")
-        shutil.copy2(repo_agent / "deck.csv", WORK_DIR / "deck.csv")
+    shutil.copy2(repo_agent / "main.py", WORK_DIR / "candidate_main.py")
+    shutil.copy2(repo_agent / "deck.csv", WORK_DIR / "deck.csv")
 
     sys.path.insert(0, str(WORK_DIR))
-    from cg.api import to_observation_class
+    from cg.api import OptionType, SelectContext, to_observation_class
     from cg.game import battle_finish, battle_select, battle_start
 
-    spec = importlib.util.spec_from_file_location("candidate", WORK_DIR / "main.py")
-    candidate = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(candidate)
+    candidate = load_module("candidate_policy", WORK_DIR / "candidate_main.py")
+    control = load_module("official_random_policy", sample_dir / "main.py")
     deck = candidate.read_deck_csv()
     assert len(deck) == 60
     """),
     md("""
-    ## 3. Legality shield and game runner
+    ## 3. Instrumented game runner
 
-    Validate each action before it reaches the simulator. Failures remain in
-    the reportâ€”discarding them would produce a falsely optimistic estimate.
+    Every action is checked before the simulator receives it. Telemetry uses
+    enum names rather than opaque integers, making high-frequency decision
+    bottlenecks immediately visible. Exceptions and decision-limit stalls are
+    preserved as failed games.
     """),
     code("""
-    def validate_action(obs_dict: dict, action: list[int]) -> None:
-        obs = to_observation_class(obs_dict)
-        if obs.select is None:
-            assert len(action) == 60
-            return
+    def enum_name(enum_class, value) -> str:
+        try:
+            return enum_class(value).name
+        except (ValueError, TypeError):
+            return f"UNKNOWN_{value}"
+
+    def validate_action(obs, action: list[int]) -> None:
+        select = obs.select
         assert isinstance(action, list)
         assert all(isinstance(index, int) for index in action)
         assert len(action) == len(set(action))
-        assert obs.select.minCount <= len(action) <= obs.select.maxCount
-        assert all(0 <= index < len(obs.select.option) for index in action)
+        assert select.minCount <= len(action) <= select.maxCount
+        assert all(0 <= index < len(select.option) for index in action)
 
-    def play_game() -> dict:
-        started, decisions, contexts = time.perf_counter(), 0, Counter()
+    def play_game(
+        policies: dict[int, object],
+        game_id: int,
+        candidate_player: int | None,
+        experiment: str,
+    ) -> dict:
+        random.seed(BASE_SEED + game_id)
+        started = time.perf_counter()
+        decisions = 0
+        contexts, actions = Counter(), Counter()
+        role_contexts, role_actions = Counter(), Counter()
         try:
-            obs_dict, start = battle_start(deck, deck)
+            obs_dict, start_data = battle_start(deck, deck)
             if obs_dict is None:
-                return {"status": "start_error", "error_player": start.errorPlayer,
-                        "error_type": start.errorType}
+                return {
+                    "status": "start_error", "experiment": experiment,
+                    "game": game_id, "candidate_player": candidate_player,
+                    "error_player": start_data.errorPlayer,
+                    "error_type": start_data.errorType,
+                }
             while decisions < MAX_DECISIONS:
                 obs = to_observation_class(obs_dict)
                 if obs.current is not None and obs.current.result != -1:
-                    return {"status": "finished", "winner": obs.current.result,
-                            "turn": obs.current.turn, "decisions": decisions,
-                            "seconds": time.perf_counter() - started,
-                            "contexts": dict(contexts)}
-                contexts[str(getattr(obs.select, "context", "none"))] += 1
-                action = candidate.agent(obs_dict)
-                validate_action(obs_dict, action)
+                    winner = int(obs.current.result)
+                    if candidate_player is None:
+                        candidate_score = None
+                    elif winner == candidate_player:
+                        candidate_score = 1.0
+                    elif winner in (0, 1):
+                        candidate_score = 0.0
+                    else:
+                        candidate_score = 0.5
+                    return {
+                        "status": "finished", "experiment": experiment,
+                        "game": game_id, "candidate_player": candidate_player,
+                        "winner": winner, "candidate_score": candidate_score,
+                        "turn": int(obs.current.turn), "decisions": decisions,
+                        "seconds": time.perf_counter() - started,
+                        "contexts": dict(contexts), "actions": dict(actions),
+                        "role_contexts": dict(role_contexts),
+                        "role_actions": dict(role_actions),
+                    }
+                player = int(obs.current.yourIndex)
+                role = (
+                    "candidate"
+                    if candidate_player is None or player == candidate_player
+                    else "control"
+                )
+                context_name = enum_name(SelectContext, obs.select.context)
+                contexts[context_name] += 1
+                role_contexts[f"{role}:{context_name}"] += 1
+                action = policies[player].agent(obs_dict)
+                validate_action(obs, action)
+                for index in action:
+                    action_name = enum_name(OptionType, obs.select.option[index].type)
+                    actions[action_name] += 1
+                    role_actions[f"{role}:{action_name}"] += 1
                 obs_dict = battle_select(action)
                 decisions += 1
-            return {"status": "decision_limit", "decisions": decisions}
+            return {
+                "status": "decision_limit", "experiment": experiment,
+                "game": game_id, "candidate_player": candidate_player,
+                "decisions": decisions,
+            }
         except Exception as error:
-            return {"status": "exception", "error": f"{type(error).__name__}: {error}",
-                    "decisions": decisions}
+            return {
+                "status": "exception", "experiment": experiment,
+                "game": game_id, "candidate_player": candidate_player,
+                "error": f"{type(error).__name__}: {error}",
+                "decisions": decisions,
+            }
         finally:
             try:
                 battle_finish()
@@ -324,88 +511,221 @@ EVALUATION = [
                 pass
     """),
     md("""
-    The current wrapper does not expose a random seed. Repeated self-play tests
-    execution, but exact seed pairing should be added if a future SDK exposes a
-    supported hook. For candidate comparisons, alternate policies by
-    `obs.current.yourIndex` and swap seats.
+    ## 4. Contract smoke test
+
+    Candidate-versus-candidate games test deck initialization, action legality,
+    termination, and runtime. They do not measure strength.
     """),
     code("""
-    results = []
-    for game in range(N_GAMES):
-        result = play_game()
-        result["game"] = game
-        results.append(result)
-        print(result)
-
-    results_df = pd.DataFrame(results)
-    display(results_df)
-    display(results_df.status.value_counts().rename("games").to_frame())
-    failures = results_df[results_df.status != "finished"]
-    print("PASS: contract smoke test" if failures.empty else "NOT READY: inspect failures")
-    display(failures)
-    Path("/kaggle/working/baseline_smoke_results.json").write_text(
-        json.dumps(results, indent=2, default=str)
-    )
+    contract_results = [
+        play_game({0: candidate, 1: candidate}, game, None, "contract_self_play")
+        for game in range(CONTRACT_GAMES)
+    ]
+    contract_df = pd.DataFrame(contract_results)
+    display(contract_df.drop(
+        columns=["contexts", "actions", "role_contexts", "role_actions"],
+        errors="ignore",
+    ))
+    contract_failures = contract_df[contract_df.status != "finished"]
+    assert contract_failures.empty, contract_failures.to_dict("records")
+    print(f"PASS: {len(contract_df)}/{len(contract_df)} contract games finished")
     """),
     md("""
-    ## 4. Interpretation and next experiment
+    ## 5. Candidate versus official random control
 
-    Self-play balance is not a strength estimate. A frozen baseline requires
-    zero start errors, illegal actions, exceptions, and stalls. The first
-    competitive candidate should change one ideaâ€”attack ranking by knockout
-    and damageâ€”then face frozen opponents across both seats. Report wins,
-    draws, losses, failure rate, and uncertainty before using a ladder slot.
+    The candidate plays an equal number of games as player 0 and player 1.
+    A bootstrap interval summarizes game-level uncertainty. Because simulator
+    seeds are unavailable, treat this as a screening estimate rather than a
+    paired causal measurement.
+    """),
+    code("""
+    matchup_results = []
+    game_id = 10_000
+    for candidate_player in (0, 1):
+        for repetition in range(GAMES_PER_SEAT):
+            policies = {
+                candidate_player: candidate,
+                1 - candidate_player: control,
+            }
+            matchup_results.append(play_game(
+                policies, game_id, candidate_player, "candidate_vs_random"
+            ))
+            game_id += 1
+
+    matchup_df = pd.DataFrame(matchup_results)
+    display(matchup_df.drop(
+        columns=["contexts", "actions", "role_contexts", "role_actions"],
+        errors="ignore",
+    ))
+    failures = matchup_df[matchup_df.status != "finished"]
+    finished = matchup_df[matchup_df.status == "finished"].copy()
+    assert failures.empty, failures.to_dict("records")
+
+    scores = finished.candidate_score.to_numpy(dtype=float)
+    rng = np.random.default_rng(BASE_SEED)
+    bootstrap_means = rng.choice(
+        scores, size=(BOOTSTRAP_SAMPLES, len(scores)), replace=True
+    ).mean(axis=1)
+    ci_low, ci_high = np.quantile(bootstrap_means, [0.025, 0.975])
+    wins = int((scores == 1.0).sum())
+    draws = int((scores == 0.5).sum())
+    losses = int((scores == 0.0).sum())
+    summary = {
+        "games": len(finished), "wins": wins, "draws": draws, "losses": losses,
+        "score_rate": float(scores.mean()),
+        "bootstrap_95_low": float(ci_low), "bootstrap_95_high": float(ci_high),
+        "failures": len(failures),
+    }
+    if len(failures):
+        decision = "REJECT: runtime failures observed"
+    elif ci_high < 0.5:
+        decision = "REJECT: candidate is worse than random control"
+    elif ci_low > 0.5:
+        decision = "PASS SCREEN: evaluate against stronger frozen controls"
+    else:
+        decision = "HOLD: interval overlaps parity"
+    summary["decision"] = decision
+    display(pd.Series(summary).to_frame("value"))
+    print(f"Promotion decision: {decision}")
+    display(finished.groupby("candidate_player").candidate_score.agg(
+        games="size", score_rate="mean"
+    ))
+    """),
+    md("""
+    ## 6. Decision-context and action telemetry
+
+    The first run spent most decisions in context `0`, which was unreadable.
+    Named aggregation below shows where future heuristics or search can affect
+    the largest share of decisions and which actions the policy actually uses.
+    """),
+    code("""
+    context_counts, action_counts = Counter(), Counter()
+    role_context_counts, role_action_counts = Counter(), Counter()
+    for row in contract_results + matchup_results:
+        context_counts.update(row.get("contexts", {}))
+        action_counts.update(row.get("actions", {}))
+        role_context_counts.update(row.get("role_contexts", {}))
+        role_action_counts.update(row.get("role_actions", {}))
+
+    context_df = pd.Series(context_counts, name="decisions").sort_values(ascending=False).to_frame()
+    action_df = pd.Series(action_counts, name="selections").sort_values(ascending=False).to_frame()
+    display(context_df)
+    display(action_df)
+
+    role_action_rows = [
+        {"role": key.split(":", 1)[0], "action": key.split(":", 1)[1],
+         "selections": value}
+        for key, value in role_action_counts.items()
+    ]
+    role_context_rows = [
+        {"role": key.split(":", 1)[0], "context": key.split(":", 1)[1],
+         "decisions": value}
+        for key, value in role_context_counts.items()
+    ]
+    role_action_df = pd.DataFrame(role_action_rows).pivot_table(
+        index="action", columns="role", values="selections", fill_value=0
+    ).sort_values("candidate", ascending=False)
+    role_context_df = pd.DataFrame(role_context_rows).pivot_table(
+        index="context", columns="role", values="decisions", fill_value=0
+    ).sort_values("candidate", ascending=False)
+    display(role_action_df)
+    display(role_context_df)
+    display(finished[["turn", "decisions", "seconds"]].describe().T)
+
+    output = Path("/kaggle/working")
+    payload = {
+        "configuration": {
+            "contract_games": CONTRACT_GAMES,
+            "games_per_seat": GAMES_PER_SEAT,
+            "simulator_seed_exposed": False,
+        },
+        "summary": summary,
+        "context_counts": dict(context_counts),
+        "action_counts": dict(action_counts),
+        "role_context_counts": dict(role_context_counts),
+        "role_action_counts": dict(role_action_counts),
+        "contract_results": contract_results,
+        "matchup_results": matchup_results,
+    }
+    (output / "agent_evaluation_results.json").write_text(
+        json.dumps(payload, indent=2, default=str)
+    )
+    print(f"Saved evaluation evidence to {output / 'agent_evaluation_results.json'}")
+    """),
+    md("""
+    ## 7. Promotion decision
+
+    Reliability is mandatory. Strength promotion additionally requires a score
+    rate above 0.5 with an uncertainty interval that is useful for the decision,
+    no material seat collapse, and zero runtime failures. This random-policy
+    comparison is only the first control; the next notebook version should add
+    frozen historical and strategy-diverse opponents before a ladder submission.
     """),
 ]
 
 
 PACKAGING = [
     md("""
-    # Submission Packaging and Validation
+    # Submission Packaging and Runtime Validation
 
-    **Purpose.** Create a clean agent archive from the official runtime and the
-    reviewed repository policy/deck.
+    **Purpose.** Build a clean agent archive, execute the staged package with
+    the official simulator, and emit a traceable manifest.
 
-    **Decision question.** Is this exact artifact structurally safe and
-    traceable? This notebook deliberately does not submit automatically; a
-    human decides whether the evidence deserves one of the latest two slots.
+    **Decision question.** Does the exact tar.gz candidate import, locate its deck,
+    select legal actions, finish a game, and preserve the required root layout?
+
+    The previous packaging run verified structure but did not execute staged
+    `main.py`; that gap allowed a working-directory deck-path defect to escape.
+    This revision makes runtime smoke validation part of packaging itself.
     """),
     md("""
-    ## 1. Discover clean sources
+    ## 1. Discover immutable inputs
 
-    `main.py` and `deck.csv` must sit at the ZIP root, with the complete SDK in
-    `cg/`. Never package a stale evaluation directory.
+    Simulator files come only from the attached competition data. Reviewed
+    policy and deck files come from the private agent-source dataset. The
+    staging directory is recreated from scratch on every run.
     """),
     code("""
     from collections import Counter
     from pathlib import Path
     import ast
     import hashlib
+    import importlib.util
     import json
     import shutil
-    import zipfile
+    import sys
+    import time
+    import tarfile
+
+    import pandas as pd
 
     PACKAGE_DIR = Path("/kaggle/working/submission_agent")
-    ARCHIVE = Path("/kaggle/working/submission.zip")
+    ARCHIVE = Path("/kaggle/working/submission.tar.gz")
+    MANIFEST_PATH = Path("/kaggle/working/submission_manifest.json")
+    MAX_DECISIONS = 10_000
 
     sample = sorted(Path("/kaggle/input").rglob("sample_submission/main.py"))[0].parent
     candidates = [Path("../agent"), Path("agent")]
-    candidates += [x.parent for x in sorted(Path("/kaggle/input").rglob("main.py")) if "sample_submission" not in x.parts and "cg" not in x.parts]
+    candidates += [
+        path.parent for path in sorted(Path("/kaggle/input").rglob("main.py"))
+        if "sample_submission" not in path.parts and "cg" not in path.parts
+    ]
     repo_agent = next(
-        (x for x in candidates if (x / "main.py").exists() and (x / "deck.csv").exists()),
+        (path for path in candidates
+         if (path / "main.py").exists() and (path / "deck.csv").exists()),
         None,
     )
     if repo_agent is None:
-        raise FileNotFoundError("Attach a private dataset containing this repo's agent/ directory.")
+        raise FileNotFoundError("Attach the private agent-source dataset.")
     print(f"Official runtime: {sample}")
     print(f"Reviewed agent: {repo_agent}")
     """),
     md("""
     ## 2. Assemble and statically validate
 
-    Start empty so experiment residue cannot leak into the archive. The live
-    Kaggle validation episode remains authoritative, but syntax, structure,
-    deck length, and corrupt-ZIP errors are cheaper to catch here.
+    Static checks reject syntax errors, missing entrypoints, malformed deck
+    length, incomplete SDK copies, and unexpected source locations before the
+    more expensive simulator test.
     """),
     code("""
     if PACKAGE_DIR.exists():
@@ -420,19 +740,84 @@ PACKAGING = [
     names = {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)}
     assert "agent" in names, "main.py must define agent(obs_dict)."
 
-    deck = [int(x) for x in (PACKAGE_DIR / "deck.csv").read_text().splitlines() if x.strip()]
+    deck = [
+        int(value) for value in (PACKAGE_DIR / "deck.csv").read_text().splitlines()
+        if value.strip()
+    ]
     assert len(deck) == 60, f"Expected 60 cards, found {len(deck)}."
-    display(Counter(deck).most_common())
+    display(pd.Series(Counter(deck), name="copies").rename_axis("card_id").to_frame())
 
-    required = ["main.py", "deck.csv", "cg/__init__.py", "cg/api.py", "cg/game.py", "cg/sim.py"]
-    missing = [x for x in required if not (PACKAGE_DIR / x).exists()]
-    assert not missing, f"Missing files: {missing}"
+    required = {
+        "main.py", "deck.csv", "cg/__init__.py", "cg/api.py", "cg/game.py",
+        "cg/sim.py", "cg/utils.py", "cg/cg.dll", "cg/libcg.so",
+    }
+    staged = {
+        str(path.relative_to(PACKAGE_DIR)).replace("\\\\", "/")
+        for path in PACKAGE_DIR.rglob("*") if path.is_file()
+    }
+    assert required <= staged, f"Missing required files: {sorted(required - staged)}"
     """),
     md("""
-    ## 3. Hash and package the exact artifact
+    ## 3. Execute the staged package
 
-    Hashes link ladder results to immutable code and deck content. Archive paths
-    are relative to staging so no accidental parent folder is introduced.
+    Import `main.py` from staging, not from the source dataset, and run one full
+    legality-checked self-play game. This specifically verifies module-relative
+    deck discovery and the Linux shared library used by Kaggle.
+    """),
+    code("""
+    sys.path.insert(0, str(PACKAGE_DIR))
+    spec = importlib.util.spec_from_file_location("staged_agent", PACKAGE_DIR / "main.py")
+    staged_agent = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(staged_agent)
+
+    from cg.api import to_observation_class
+    from cg.game import battle_finish, battle_select, battle_start
+
+    staged_deck = staged_agent.read_deck_csv()
+    assert staged_deck == deck
+    started = time.perf_counter()
+    decisions = 0
+    try:
+        obs_dict, start_data = battle_start(staged_deck, staged_deck)
+        assert obs_dict is not None, {
+            "error_player": start_data.errorPlayer,
+            "error_type": start_data.errorType,
+        }
+        while decisions < MAX_DECISIONS:
+            obs = to_observation_class(obs_dict)
+            if obs.current is not None and obs.current.result != -1:
+                runtime_smoke = {
+                    "status": "finished", "winner": int(obs.current.result),
+                    "turn": int(obs.current.turn), "decisions": decisions,
+                    "seconds": time.perf_counter() - started,
+                }
+                break
+            action = staged_agent.agent(obs_dict)
+            select = obs.select
+            assert isinstance(action, list)
+            assert len(action) == len(set(action))
+            assert select.minCount <= len(action) <= select.maxCount
+            assert all(isinstance(index, int) for index in action)
+            assert all(0 <= index < len(select.option) for index in action)
+            obs_dict = battle_select(action)
+            decisions += 1
+        else:
+            raise RuntimeError("Staged package reached the decision limit.")
+    finally:
+        battle_finish()
+    display(runtime_smoke)
+
+    for cache in PACKAGE_DIR.rglob("__pycache__"):
+        shutil.rmtree(cache)
+    for compiled in PACKAGE_DIR.rglob("*.pyc"):
+        compiled.unlink()
+    """),
+    md("""
+    ## 4. Hash, archive, and inspect
+
+    Source hashes link the ladder artifact to reviewed repository files. The
+    archive hash identifies the exact uploaded bytes. Tar members are relative
+    to staging so `main.py` cannot be hidden under an accidental parent folder.
     """),
     code("""
     def sha256(path: Path) -> str:
@@ -442,40 +827,52 @@ PACKAGING = [
                 digest.update(chunk)
         return digest.hexdigest()
 
-    manifest = {
-        "main_sha256": sha256(PACKAGE_DIR / "main.py"),
-        "deck_sha256": sha256(PACKAGE_DIR / "deck.csv"),
-        "files": sorted(str(x.relative_to(PACKAGE_DIR)).replace("\\\\", "/")
-                        for x in PACKAGE_DIR.rglob("*") if x.is_file()),
-    }
-    Path("/kaggle/working/submission_manifest.json").write_text(
-        json.dumps(manifest, indent=2)
-    )
-    display(manifest)
-
     if ARCHIVE.exists():
         ARCHIVE.unlink()
-    with zipfile.ZipFile(ARCHIVE, "w", zipfile.ZIP_DEFLATED) as archive:
+    with tarfile.open(ARCHIVE, "w:gz", format=tarfile.PAX_FORMAT) as archive:
         for path in sorted(PACKAGE_DIR.rglob("*")):
             if path.is_file():
-                archive.write(path, path.relative_to(PACKAGE_DIR))
-    with zipfile.ZipFile(ARCHIVE) as archive:
-        members, bad = archive.namelist(), archive.testzip()
-    assert bad is None
-    assert "main.py" in members and "deck.csv" in members
-    assert any(x.startswith("cg/") for x in members)
-    assert not any(x.startswith("submission_agent/") for x in members)
+                archive.add(
+                    path,
+                    arcname=path.relative_to(PACKAGE_DIR).as_posix(),
+                    recursive=False,
+                )
+
+    with tarfile.open(ARCHIVE, "r:gz") as archive:
+        file_members = [member for member in archive.getmembers() if member.isfile()]
+        members = [member.name for member in file_members]
+        for member in file_members:
+            stream = archive.extractfile(member)
+            assert stream is not None
+            while stream.read(1 << 20):
+                pass
+    assert set(members) == required, {
+        "missing": sorted(required - set(members)),
+        "unexpected": sorted(set(members) - required),
+    }
+    assert not any(member.startswith("submission_agent/") for member in members)
+
+    manifest = {
+        "format": "tar.gz",
+        "main_sha256": sha256(PACKAGE_DIR / "main.py"),
+        "deck_sha256": sha256(PACKAGE_DIR / "deck.csv"),
+        "archive_sha256": sha256(ARCHIVE),
+        "archive_bytes": ARCHIVE.stat().st_size,
+        "members": members,
+        "runtime_smoke": runtime_smoke,
+    }
+    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2))
+    display(manifest)
     print(f"Archive: {ARCHIVE} ({ARCHIVE.stat().st_size / 1e6:.2f} MB)")
-    print("\\n".join(members))
     """),
     md("""
-    ## 4. Submission gate
+    ## 5. Submission gate
 
-    Upload only after the evaluation notebook passes, paired evidence beats the
-    frozen control, hashes are copied to the experiment ledger, current rules
-    are rechecked, and replacing one of the latest two tracked agents is
-    intentional. After upload, wait for validation. On failure, download the
-    agent log and diagnose this exact hash rather than making an unrecorded edit.
+    A complete packaging run now proves static structure and one staged runtime
+    path. Submission still requires comparative evidence, recorded hashes,
+    review of live rules, and an intentional decision about the latest two
+    tracked ladder slots. Kaggle's validation episode remains the final runtime
+    authority.
     """),
 ]
 
