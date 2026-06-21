@@ -38,6 +38,7 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
 |  |- 02_agent_baseline_and_local_evaluation.ipynb
 |  |- 03_submission_packaging_and_validation.ipynb
 |  |- 04_action_sequence_experiment.ipynb
+|  |- 05_deck_consistency_experiment.ipynb
 |  `- metadata/                  # Kaggle kernel metadata templates
 |- scripts/
 |  `- build_notebooks.py         # Rebuilds notebooks deterministically
@@ -53,9 +54,11 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
    the standard random-control screen.
 4. Run `04_action_sequence_experiment.ipynb` before promoting a sequencing
    change; it freezes both policies and records state-aware episode telemetry.
-5. Run `03_submission_packaging_and_validation.ipynb`. Download its verified
+5. Run `05_deck_consistency_experiment.ipynb` for an isolated deck change while
+   keeping the promoted policy frozen.
+6. Run `03_submission_packaging_and_validation.ipynb`. Download its verified
    `submission.tar.gz`, then submit it on the competition page.
-6. Record validation, uncertainty, episode count, and the promotion/submission
+7. Record validation, uncertainty, episode count, and the promotion/submission
    decision in `docs/6_experiment_log.md`.
 
 See [the full Kaggle runbook](docs/5_kaggle_runbook.md) for exact steps and
@@ -90,13 +93,12 @@ Development-first beat attack-first `37-0-3` (`0.925`, bootstrap 95% interval
 `[0.675, 0.925]`). The independent standard screen scored `31-0-9` (`0.775`,
 interval `[0.650, 0.900]`).
 
-This agent passes the random-control screen but is not yet ladder-proven. The
-knockout, readiness-only attachment, and corrected value-per-attachment
-follow-ups all failed their promotion gates. The value scorer finished `20-0-20`
-(`0.500`, 95% interval `[0.350, 0.650]`) with 31 meaningful target changes and
-zero failures. The production agent remains unchanged. The next controlled
-experiment should address the deck's quantified opening-setup weakness while
-freezing the policy.
+This agent passes the random-control screen but is not yet ladder-proven. Three
+isolated policy follow-ups failed their promotion gates. An eight-Basic deck
+then improved exact setup probability from 54.14% to 65.36% but finished
+`40-0-40` (`0.500`, 95% interval `[0.3875, 0.6125]`) against the starter deck.
+The production policy and deck remain unchanged. The next screen should measure
+actual first-player effects and add stronger frozen opponents.
 
 ## Kaggle validation
 
@@ -107,6 +109,7 @@ The complete workflow was run on Kaggle on 21 June 2026:
 | [Card Database EDA](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-card-database-eda) | Complete | 1,267 cards plus bounded PDF-reference audit |
 | [Agent Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | Promoted agent passed random screen at 0.775 |
 | [Action Sequence Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-action-sequence-experiment) | Complete | Development-first promoted; three isolated follow-ups held |
+| [Deck Consistency Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-deck-consistency-experiment) | Complete | Eight-Basic variant held at 40-0-40 over 80 games |
 | [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | Promoted-agent tar.gz and hashes verified |
 
 The agent source is mounted from a private Kaggle dataset and credentials remain

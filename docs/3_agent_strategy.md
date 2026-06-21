@@ -80,11 +80,11 @@ unchanged.
 
 ## Near-term experiments
 
-1. Deck-consistency testing with increased Basic-Pokemon count and frozen policy.
+1. First-player attribution using the simulator's `firstPlayer` state, separated from player index.
 2. Opponent-diverse evaluation against stronger frozen agents.
 3. State-aware damage estimation including resistance, prevention, and active effects.
-4. First-player choice tested with seat-swapped matches.
-5. Selective one-ply search for attack/retreat decisions.
+4. Selective one-ply search for attack/retreat decisions.
+5. Alternative deck variants only after stronger-opponent evidence is available.
 
 ## Evidence from the first comparative screen
 
@@ -152,3 +152,18 @@ interval of `[0.350, 0.650]` and zero failures. The result is **HOLD** and
 `agent/main.py` remains unchanged. Since three isolated policy refinements have
 not cleared parity, the next experiment should freeze policy and address the
 starter deck's 45.86% no-Basic opening risk.
+
+
+## Eight-Basic deck-consistency follow-up
+
+The deck candidate replaced two of 35 Basic Water Energy cards with two Kyogre,
+raising Basic Pokemon from six to eight while keeping all non-Energy copy counts
+at four or fewer. Exact seven-card setup probability increased from `0.5414` to
+`0.6536`, an 11.22 percentage-point gain.
+
+With development-first frozen, the candidate finished `40-0-40` over 80 Kaggle
+games (`0.500`, bootstrap 95% `[0.3875, 0.6125]`) with zero failures. It scored
+`0.60` while occupying player 0 and `0.40` as player 1. The result is **HOLD**;
+do not modify `agent/deck.csv`. The parity result and seat split shift the next
+priority to actual `firstPlayer` attribution and opponent diversity rather than
+another immediate deck edit.

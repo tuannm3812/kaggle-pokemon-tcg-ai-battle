@@ -81,14 +81,14 @@ line. Simulator initialization remains the authoritative legality check.
 | Development-first beat attack-first `37-0-3` | Premature aggression was a causal weakness | Keep development-first as the control policy |
 | Development-first beat random `32-0-8` | The promoted ordering is a meaningful baseline | Test only one policy exception at a time |
 
-The printed-damage **immediate-knockout exception** was held at `25-0-15`
-because its interval crossed parity. Readiness-only attachment scoring and a
-corrected projected-value scorer both finished `20-0-20` (`0.500`, bootstrap
-95% `[0.350, 0.650]`). The value scorer changed 31 targets without failures but
-added no measurable advantage. Further hand-tuned ordering has diminishing
-returns in this mirror matchup. The next controlled experiment should freeze
-the promoted policy and test increased Basic-Pokemon count as a separate deck
-consistency intervention.
+The printed-damage knockout and both attachment follow-ups were held. The
+separate deck-consistency experiment then replaced two Basic Water Energy with
+two Kyogre, raising exact setup probability from 54.14% to 65.36%. Across 80
+seat-balanced games the variant finished `40-0-40` (`0.500`, bootstrap 95%
+`[0.3875, 0.6125]`) with zero failures. The setup gain did not produce a strength
+gain, so `agent/deck.csv` remains unchanged. The `0.60` versus `0.40` score split
+by occupied player index makes first-player attribution and stronger opponents
+the next evidence priorities.
 
 ## Episode telemetry
 

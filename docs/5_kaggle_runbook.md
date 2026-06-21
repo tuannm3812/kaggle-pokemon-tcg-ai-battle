@@ -35,7 +35,14 @@ freezes attack-first and development-first maps independently of the current
 agent source, runs three seat-balanced matchups, and writes state snapshots plus
 a promotion decision.
 
-### 4. Package and validate
+### 4. Deck-consistency experiment
+
+Run `05_deck_consistency_experiment.ipynb` for isolated deck changes. It freezes
+the promoted policy, audits starter and candidate lists, runs both seats, and
+writes `/kaggle/working/deck_consistency_experiment.json`. Do not edit the
+production deck unless the candidate clears its promotion gate.
+
+### 5. Package and validate
 
 Run `03_submission_packaging_and_validation.ipynb`. It creates a clean staging
 directory, copies the official `cg` runtime plus the version-controlled policy
