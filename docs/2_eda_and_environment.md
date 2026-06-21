@@ -88,3 +88,16 @@ separate analytical pass unless translation consistency becomes relevant.
 
 Do not OCR or redistribute the full card-image corpus. Record sampled page
 numbers and findings so visual checks remain reproducible and competition-only.
+
+## Episode EDA findings
+
+The action-sequencing experiment converted the initial action-count diagnosis
+into state-aware evidence. Across 120 games, development-first beat attack-first
+`37-0-3` and random `32-0-8`, with no simulator failures. At attack decisions,
+the promoted policy had materially more attached Energy and a larger Bench than
+the attack-first control, confirming premature aggression as a causal weakness.
+
+The remaining EDA gap is opponent diversity and terminal-reason analysis. The
+next evidence set should include frozen stronger agents or exported ladder
+replays, prize trajectories, knockout timing, deck-out frequency, and revealed
+opponent-card beliefs.

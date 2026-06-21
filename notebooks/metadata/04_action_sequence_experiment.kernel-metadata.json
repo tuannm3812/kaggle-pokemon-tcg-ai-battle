@@ -1,0 +1,17 @@
+{
+  "id": "tuannm3812/pokemon-tcg-action-sequence-experiment",
+  "title": "Pokemon TCG - Action Sequence Experiment",
+  "code_file": "04_action_sequence_experiment.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": false,
+  "competition_sources": [
+    "pokemon-tcg-ai-battle"
+  ],
+  "dataset_sources": [
+    "tuannm3812/pokemon-tcg-ai-battle-agent-source"
+  ],
+  "kernel_sources": []
+}

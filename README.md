@@ -29,25 +29,19 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
 
 ```text
 .
-├── agent/                         # Version-controlled policy and deck
-│   ├── main.py
-│   └── deck.csv
-├── docs/
-│   ├── 0_coding_standards.md
-│   ├── 1_competition_instructions.md
-│   ├── 2_eda_and_environment.md
-│   ├── 3_agent_strategy.md
-│   ├── 4_evaluation_and_submissions.md
-│   ├── 5_kaggle_runbook.md
-│   └── 6_experiment_log.md
-├── notebooks/
-│   ├── 01_card_database_eda.ipynb
-│   ├── 02_agent_baseline_and_local_evaluation.ipynb
-│   ├── 03_submission_packaging_and_validation.ipynb
-│   └── metadata/                  # Kaggle kernel metadata templates
-├── scripts/
-│   └── build_notebooks.py         # Rebuilds notebooks deterministically
-└── requirements.txt
+|- agent/                         # Version-controlled policy and deck
+|  |- main.py
+|  `- deck.csv
+|- docs/                          # Rules, strategy, evidence, and runbook
+|- notebooks/
+|  |- 01_card_database_eda.ipynb
+|  |- 02_agent_baseline_and_local_evaluation.ipynb
+|  |- 03_submission_packaging_and_validation.ipynb
+|  |- 04_action_sequence_experiment.ipynb
+|  `- metadata/                  # Kaggle kernel metadata templates
+|- scripts/
+|  `- build_notebooks.py         # Rebuilds notebooks deterministically
+`- requirements.txt
 ```
 
 ## Recommended Kaggle workflow
@@ -55,12 +49,13 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
 1. Create a Kaggle notebook attached to the competition data.
 2. Import and run `01_card_database_eda.ipynb` to audit the card catalogue and
    deck constraints.
-3. Import and run `02_agent_baseline_and_local_evaluation.ipynb` with Internet
-   disabled. It copies the official SDK into `/kaggle/working`, loads the
-   repository policy, and runs paired self-play smoke tests.
-4. Run `03_submission_packaging_and_validation.ipynb`. Download its
+3. Run `02_agent_baseline_and_local_evaluation.ipynb` for contract checks and
+   the standard random-control screen.
+4. Run `04_action_sequence_experiment.ipynb` before promoting a sequencing
+   change; it freezes both policies and records state-aware episode telemetry.
+5. Run `03_submission_packaging_and_validation.ipynb`. Download its verified
    `submission.tar.gz`, then submit it on the competition page.
-5. Record the validation state, ladder rating, uncertainty, episode count, and
+6. Record validation, uncertainty, episode count, and the promotion/submission
    decision in `docs/6_experiment_log.md`.
 
 See [the full Kaggle runbook](docs/5_kaggle_runbook.md) for exact steps and
@@ -83,23 +78,21 @@ Credentials are intentionally absent from the repository. Prefer Kaggle's
 attached competition data in notebooks. For local API use, keep the token
 outside the repo and never print it in notebook output.
 
-## Current baseline
+## Current agent
 
-`agent/main.py` is a deterministic, legality-first baseline. It removes the
-random sample agent's run-to-run noise, ranks main-phase action types, and uses
-stable tie-breaking. It is a foundation for controlled experiments—not a
-claim of competitive strength.
+`agent/main.py` is the promoted deterministic development-first policy. Its
+main-phase order is evolve, ability, attach, play, attack, retreat, discard,
+then end. The legality shield and stable tie-breaking remain unchanged.
 
-The next meaningful upgrade is state-aware scoring of attacks, energy
-attachments, evolutions, and setup choices, evaluated against frozen opponents
-with seat-swapped paired games.
+The single-change sequencing experiment completed 120 games with no failures.
+Development-first beat attack-first `37-0-3` (`0.925`, bootstrap 95% interval
+`[0.825, 1.000]`) and beat the random control `32-0-8` (`0.800`, interval
+`[0.675, 0.925]`). The independent standard screen scored `31-0-9` (`0.775`,
+interval `[0.650, 0.900]`).
 
-The latest Kaggle screen rejects this baseline for ladder use: it scored
-`5-0-35` against the official random control (`0.125`, bootstrap 95% interval
-`[0.025, 0.225]`). Candidate telemetry shows 322 attack selections but only 64
-attachments, versus 139 attacks and 228 attachments for the control. The next
-policy change should prevent premature attacks and value board development.
-
+This agent passes the random-control screen but is not yet ladder-proven. The
+next controlled change should add an immediate-knockout exception or card-aware
+attachment scoring, evaluated against stronger frozen opponents.
 
 ## Kaggle validation
 
@@ -108,8 +101,9 @@ The complete workflow was run on Kaggle on 21 June 2026:
 | Notebook | Status | Evidence |
 | --- | --- | --- |
 | [Card Database EDA](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-card-database-eda) | Complete | 1,267 cards plus bounded PDF-reference audit |
-| [Agent Baseline and Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | 40 control games; baseline rejected at 0.125 score rate |
-| [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | Staged runtime game and exact tar.gz source/archive hashes verified |
+| [Agent Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | Promoted agent passed random screen at 0.775 |
+| [Action Sequence Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-action-sequence-experiment) | Complete | 120 games; development-first promoted |
+| [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | Promoted-agent tar.gz and hashes verified |
 
 The agent source is mounted from a private Kaggle dataset and credentials remain
 outside this repository.

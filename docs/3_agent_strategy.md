@@ -71,12 +71,12 @@ by poor sequencing. Iterate in two tracks:
 
 Only combine gains after each component beats its control independently.
 
-## Baseline policy in this repository
+## Current promoted policy
 
-The baseline ranks main actions approximately as attack, evolve, ability,
-attach, play, retreat, discard, and end. Non-main decisions use conservative,
-stable selection. This removes randomness and provides a testable control, but
-it does not yet understand card value, attack damage, or the board.
+The repository now uses development-first ordering: evolve, ability, attach,
+play, attack, retreat, discard, then end. This is the only behavioral change
+from the frozen attack-first baseline; setup and stable tie-breaking remain
+unchanged.
 
 ## Near-term experiments
 
@@ -98,3 +98,16 @@ while the control selected attack 139 times and attach 228 times. The next
 single-change experiment should move attack behind safe board-development
 actions, then add state-aware knockout and retaliation scoring. Preserve this
 baseline as a reliability control, not a strength control.
+
+## Development-first promotion evidence
+
+The reproducible sequencing experiment completed 120 games without failures.
+Development-first beat attack-first `37-0-3` with score rate `0.925` and a
+bootstrap 95% interval of `[0.825, 1.000]`. It beat the official random policy
+`32-0-8` (`0.800`, `[0.675, 0.925]`). An independent standard screen produced
+`31-0-9` (`0.775`, `[0.650, 0.900]`).
+
+State snapshots support the causal hypothesis: development-first attacked with
+substantially more attached Energy and a larger Bench than attack-first. The
+priority change is promoted; the next experiment should preserve it and test
+an immediate-knockout exception as one isolated modification.

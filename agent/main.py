@@ -1,19 +1,18 @@
-"""Deterministic legality-first baseline for Pok?mon TCG AI Battle."""
+"""Development-first deterministic agent for Pok?mon TCG AI Battle."""
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from cg.api import OptionType, SelectContext, SelectType, to_observation_class
 
 
 MAIN_ACTION_PRIORITY = {
-    OptionType.ATTACK: 0,
-    OptionType.EVOLVE: 1,
-    OptionType.ABILITY: 2,
-    OptionType.ATTACH: 3,
-    OptionType.PLAY: 4,
+    OptionType.EVOLVE: 0,
+    OptionType.ABILITY: 1,
+    OptionType.ATTACH: 2,
+    OptionType.PLAY: 3,
+    OptionType.ATTACK: 4,
     OptionType.RETREAT: 5,
     OptionType.DISCARD: 6,
     OptionType.END: 7,

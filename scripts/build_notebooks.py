@@ -877,7 +877,377 @@ PACKAGING = [
 ]
 
 
+SEQUENCING = [
+    md("""
+    # Action-Sequencing Experiment: Development Before Attack
+
+    **Purpose.** Test one causal hypothesis from the baseline telemetry: the
+    attack-first policy attacks before developing its board and therefore loses
+    even to the random control.
+
+    **Single intended change.** Reorder legal main-phase actions from
+    `attack ? evolve ? ability ? attach ? play` to
+    `evolve ? ability ? attach ? play ? attack`. Deck, tie-breaking, setup
+    choices, and all non-main selections remain unchanged.
+
+    **Promotion question.** Does development-first beat the frozen baseline and
+    materially improve performance against the official random policy without
+    introducing contract failures?
+    """),
+    md("""
+    ## 1. Configuration
+
+    Each matchup is balanced across player seats. Python randomness is seeded,
+    but the simulator does not expose its card-draw or coin-toss seed; these are
+    independent seat-balanced games rather than exact paired simulations.
+    """),
+    code("""
+    from collections import Counter
+    from pathlib import Path
+    import importlib.util
+    import json
+    import random
+    import shutil
+    import sys
+    import time
+
+    import numpy as np
+    import pandas as pd
+
+    GAMES_PER_SEAT = 20
+    MAX_DECISIONS = 10_000
+    BASE_SEED = 20260621
+    BOOTSTRAP_SAMPLES = 10_000
+    WORK_DIR = Path("/kaggle/working/action_sequence_experiment")
+    BASELINE_RANDOM_BENCHMARK = 0.125
+    """),
+    code("""
+    def first_match(pattern: str) -> Path:
+        matches = sorted(Path("/kaggle/input").rglob(pattern))
+        if not matches:
+            raise FileNotFoundError(f"No Kaggle input matched {pattern}")
+        return matches[0]
+
+    def load_module(name: str, path: Path):
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    sample_dir = first_match("sample_submission/main.py").parent
+    agent_candidates = [
+        path.parent for path in sorted(Path("/kaggle/input").rglob("main.py"))
+        if "sample_submission" not in path.parts and "cg" not in path.parts
+    ]
+    agent_dir = next(
+        (path for path in agent_candidates
+         if (path / "main.py").exists() and (path / "deck.csv").exists()),
+        None,
+    )
+    if agent_dir is None:
+        raise FileNotFoundError("Attach the private agent-source dataset.")
+    print(f"Frozen source: {agent_dir / 'main.py'}")
+    print(f"Official random control: {sample_dir / 'main.py'}")
+    """),
+    md("""
+    ## 2. Freeze baseline and create the one-change candidate
+
+    Both deterministic modules are loaded from the same reviewed source. Only
+    the candidate's `MAIN_ACTION_PRIORITY` dictionary changes in memory. This
+    prevents accidental deck, setup, or tie-break differences.
+    """),
+    code("""
+    if WORK_DIR.exists():
+        shutil.rmtree(WORK_DIR)
+    shutil.copytree(sample_dir, WORK_DIR)
+    shutil.copy2(agent_dir / "main.py", WORK_DIR / "main.py")
+    shutil.copy2(agent_dir / "deck.csv", WORK_DIR / "deck.csv")
+    sys.path.insert(0, str(WORK_DIR))
+
+    from cg.api import OptionType, SelectContext, SelectType, to_observation_class
+    from cg.game import battle_finish, battle_select, battle_start
+
+    baseline = load_module("attack_first_baseline", WORK_DIR / "main.py")
+    candidate = load_module("development_first_candidate", WORK_DIR / "main.py")
+    random_control = load_module("official_random_control", sample_dir / "main.py")
+
+    attack_priority = {
+        OptionType.ATTACK: 0,
+        OptionType.EVOLVE: 1,
+        OptionType.ABILITY: 2,
+        OptionType.ATTACH: 3,
+        OptionType.PLAY: 4,
+        OptionType.RETREAT: 5,
+        OptionType.DISCARD: 6,
+        OptionType.END: 7,
+    }
+    development_priority = {
+        OptionType.EVOLVE: 0,
+        OptionType.ABILITY: 1,
+        OptionType.ATTACH: 2,
+        OptionType.PLAY: 3,
+        OptionType.ATTACK: 4,
+        OptionType.RETREAT: 5,
+        OptionType.DISCARD: 6,
+        OptionType.END: 7,
+    }
+    baseline.MAIN_ACTION_PRIORITY = attack_priority
+    candidate.MAIN_ACTION_PRIORITY = development_priority
+    assert baseline.MAIN_ACTION_PRIORITY[OptionType.ATTACK] == 0
+    assert candidate.MAIN_ACTION_PRIORITY[OptionType.ATTACK] == 4
+    deck = baseline.read_deck_csv()
+    assert deck == candidate.read_deck_csv() and len(deck) == 60
+    display(pd.DataFrame({
+        "attack_first": {key.name: value for key, value in baseline.MAIN_ACTION_PRIORITY.items()},
+        "development_first": {key.name: value for key, value in candidate.MAIN_ACTION_PRIORITY.items()},
+    }).sort_values("development_first"))
+    """),
+    md("""
+    ## 3. State-aware instrumentation
+
+    For the focal policy, record the public board immediately before each main
+    decision: HP, Energy, Bench, Hand, Prize count, available actions, and chosen
+    action. These snapshots explain *how* the ordering changes play rather than
+    reporting only final wins.
+    """),
+    code("""
+    def enum_name(enum_class, value) -> str:
+        try:
+            return enum_class(value).name
+        except (ValueError, TypeError):
+            return f"UNKNOWN_{value}"
+
+    def active_features(player_state) -> tuple[int, int]:
+        if not player_state.active or player_state.active[0] is None:
+            return 0, 0
+        active = player_state.active[0]
+        return int(active.hp), len(active.energies)
+
+    def state_snapshot(obs, player: int, chosen_action: str, matchup: str, game: int) -> dict:
+        yours = obs.current.players[player]
+        opponent = obs.current.players[1 - player]
+        your_hp, your_energy = active_features(yours)
+        opp_hp, opp_energy = active_features(opponent)
+        available = sorted({enum_name(OptionType, option.type) for option in obs.select.option})
+        return {
+            "matchup": matchup, "game": game, "player": player,
+            "turn": int(obs.current.turn), "turn_action": int(obs.current.turnActionCount),
+            "chosen_action": chosen_action, "available_actions": ",".join(available),
+            "your_active_hp": your_hp, "your_active_energy": your_energy,
+            "your_bench": len(yours.bench), "your_hand": int(yours.handCount),
+            "your_prizes": len(yours.prize), "your_deck": int(yours.deckCount),
+            "opp_active_hp": opp_hp, "opp_active_energy": opp_energy,
+            "opp_bench": len(opponent.bench), "opp_hand": int(opponent.handCount),
+            "opp_prizes": len(opponent.prize), "opp_deck": int(opponent.deckCount),
+        }
+
+    def validate_action(obs, action: list[int]) -> None:
+        select = obs.select
+        assert isinstance(action, list)
+        assert all(isinstance(index, int) for index in action)
+        assert len(action) == len(set(action))
+        assert select.minCount <= len(action) <= select.maxCount
+        assert all(0 <= index < len(select.option) for index in action)
+    """),
+    code("""
+    def play_game(
+        policies: dict[int, object],
+        focal_player: int,
+        game_id: int,
+        matchup: str,
+    ) -> tuple[dict, list[dict]]:
+        random.seed(BASE_SEED + game_id)
+        started = time.perf_counter()
+        decisions = 0
+        focal_actions = Counter()
+        snapshots = []
+        try:
+            obs_dict, start_data = battle_start(deck, deck)
+            if obs_dict is None:
+                return ({
+                    "status": "start_error", "matchup": matchup, "game": game_id,
+                    "focal_player": focal_player, "error_player": start_data.errorPlayer,
+                    "error_type": start_data.errorType,
+                }, snapshots)
+            while decisions < MAX_DECISIONS:
+                obs = to_observation_class(obs_dict)
+                if obs.current is not None and obs.current.result != -1:
+                    winner = int(obs.current.result)
+                    score = 1.0 if winner == focal_player else (0.0 if winner in (0, 1) else 0.5)
+                    return ({
+                        "status": "finished", "matchup": matchup, "game": game_id,
+                        "focal_player": focal_player, "winner": winner,
+                        "focal_score": score, "turn": int(obs.current.turn),
+                        "decisions": decisions, "seconds": time.perf_counter() - started,
+                        "focal_actions": dict(focal_actions),
+                    }, snapshots)
+
+                player = int(obs.current.yourIndex)
+                action = policies[player].agent(obs_dict)
+                validate_action(obs, action)
+                chosen_names = [
+                    enum_name(OptionType, obs.select.option[index].type) for index in action
+                ]
+                if player == focal_player:
+                    focal_actions.update(chosen_names)
+                    if obs.select.type == SelectType.MAIN and chosen_names:
+                        snapshots.append(state_snapshot(
+                            obs, player, chosen_names[0], matchup, game_id
+                        ))
+                obs_dict = battle_select(action)
+                decisions += 1
+            return ({
+                "status": "decision_limit", "matchup": matchup, "game": game_id,
+                "focal_player": focal_player, "decisions": decisions,
+            }, snapshots)
+        except Exception as error:
+            return ({
+                "status": "exception", "matchup": matchup, "game": game_id,
+                "focal_player": focal_player,
+                "error": f"{type(error).__name__}: {error}", "decisions": decisions,
+            }, snapshots)
+        finally:
+            try:
+                battle_finish()
+            except Exception:
+                pass
+    """),
+    md("""
+    ## 4. Seat-balanced tournament
+
+    Three matchups separate improvement from mere opponent weakness:
+
+    1. development-first versus attack-first;
+    2. development-first versus official random;
+    3. frozen attack-first versus official random as a benchmark refresh.
+    """),
+    code("""
+    experiments = [
+        ("development_vs_attack", candidate, baseline),
+        ("development_vs_random", candidate, random_control),
+        ("attack_vs_random", baseline, random_control),
+    ]
+    results, snapshots = [], []
+    game_id = 0
+    for matchup, focal_policy, opponent_policy in experiments:
+        for focal_player in (0, 1):
+            for repetition in range(GAMES_PER_SEAT):
+                policies = {focal_player: focal_policy, 1 - focal_player: opponent_policy}
+                result, game_snapshots = play_game(
+                    policies, focal_player, game_id, matchup
+                )
+                results.append(result)
+                snapshots.extend(game_snapshots)
+                game_id += 1
+
+    results_df = pd.DataFrame(results)
+    snapshots_df = pd.DataFrame(snapshots)
+    failures = results_df[results_df.status != "finished"]
+    assert failures.empty, failures.to_dict("records")
+    display(results_df.drop(columns=["focal_actions"], errors="ignore"))
+    print(f"Completed {len(results_df)} games with {len(failures)} failures.")
+    """),
+    md("""
+    ## 5. Outcome uncertainty and promotion gate
+
+    Bootstrap intervals describe game-level uncertainty. Promotion requires
+    development-first to beat attack-first and to improve convincingly over the
+    frozen baseline's `0.125` random-control benchmark. Reliability alone is
+    insufficient.
+    """),
+    code("""
+    rng = np.random.default_rng(BASE_SEED)
+    summaries = []
+    for matchup, group in results_df.groupby("matchup"):
+        scores = group.focal_score.to_numpy(dtype=float)
+        boot = rng.choice(
+            scores, size=(BOOTSTRAP_SAMPLES, len(scores)), replace=True
+        ).mean(axis=1)
+        low, high = np.quantile(boot, [0.025, 0.975])
+        summaries.append({
+            "matchup": matchup, "games": len(scores),
+            "wins": int((scores == 1).sum()), "draws": int((scores == 0.5).sum()),
+            "losses": int((scores == 0).sum()), "score_rate": float(scores.mean()),
+            "ci_low": float(low), "ci_high": float(high),
+        })
+    summary_df = pd.DataFrame(summaries).set_index("matchup")
+    display(summary_df)
+
+    head_to_head = summary_df.loc["development_vs_attack"]
+    versus_random = summary_df.loc["development_vs_random"]
+    if len(failures):
+        decision = "REJECT: runtime failure"
+    elif head_to_head.ci_low <= 0.5:
+        decision = "HOLD: development-first did not clearly beat attack-first"
+    elif versus_random.ci_low <= BASELINE_RANDOM_BENCHMARK:
+        decision = "HOLD: improvement over random benchmark is uncertain"
+    else:
+        decision = "PROMOTE: development-first passes sequencing gate"
+    print(f"Promotion decision: {decision}")
+    """),
+    md("""
+    ## 6. Episode/action-sequencing EDA
+
+    Compare action mix and the board state at attacks. A healthier candidate
+    should attach and develop before attacking, attack with more Energy or a
+    stronger board, and avoid simply extending games without improving results.
+    """),
+    code("""
+    action_rows = []
+    for result in results:
+        for action, count in result.get("focal_actions", {}).items():
+            action_rows.append({
+                "matchup": result["matchup"], "action": action, "count": count
+            })
+    action_df = pd.DataFrame(action_rows).groupby(
+        ["matchup", "action"], as_index=False
+    ).sum()
+    display(action_df.pivot(index="action", columns="matchup", values="count").fillna(0))
+
+    attack_states = snapshots_df[snapshots_df.chosen_action == "ATTACK"]
+    attack_summary = attack_states.groupby("matchup").agg(
+        attacks=("chosen_action", "size"),
+        median_turn=("turn", "median"),
+        mean_active_energy=("your_active_energy", "mean"),
+        mean_bench=("your_bench", "mean"),
+        mean_active_hp=("your_active_hp", "mean"),
+        mean_opponent_hp=("opp_active_hp", "mean"),
+    )
+    display(attack_summary)
+    display(snapshots_df.groupby(["matchup", "chosen_action"]).size().rename("count").to_frame())
+    """),
+    code("""
+    output = Path("/kaggle/working")
+    payload = {
+        "configuration": {
+            "games_per_seat": GAMES_PER_SEAT,
+            "single_change": "development actions before attack",
+            "simulator_seed_exposed": False,
+        },
+        "summary": summary_df.reset_index().to_dict("records"),
+        "decision": decision,
+        "attack_state_summary": attack_summary.reset_index().to_dict("records"),
+        "results": results,
+        "snapshots": snapshots,
+    }
+    (output / "action_sequence_experiment.json").write_text(
+        json.dumps(payload, indent=2, default=str)
+    )
+    print(f"Saved evidence to {output / 'action_sequence_experiment.json'}")
+    """),
+    md("""
+    ## 7. Interpretation
+
+    Promote only the tested priority dictionary; do not mix in attack scoring,
+    deck changes, or setup heuristics in the same commit. If held or rejected,
+    use the state snapshots to choose the next single change?most likely an
+    immediate-knockout exception or card-aware attachment scoring.
+    """),
+]
+
+
 OUT.mkdir(parents=True, exist_ok=True)
 save("01_card_database_eda.ipynb", EDA)
 save("02_agent_baseline_and_local_evaluation.ipynb", EVALUATION)
 save("03_submission_packaging_and_validation.ipynb", PACKAGING)
+save("04_action_sequence_experiment.ipynb", SEQUENCING)

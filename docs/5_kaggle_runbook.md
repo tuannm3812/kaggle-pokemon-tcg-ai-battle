@@ -28,7 +28,14 @@ the repository `main.py` and `deck.csv`, then performs deterministic self-play.
 A successful smoke test proves packaging and API compatibility only. It does
 not prove ladder strength.
 
-### 3. Package and validate
+### 3. Action-sequencing experiment
+
+Run `04_action_sequence_experiment.ipynb` when testing main-phase ordering. It
+freezes attack-first and development-first maps independently of the current
+agent source, runs three seat-balanced matchups, and writes state snapshots plus
+a promotion decision.
+
+### 4. Package and validate
 
 Run `03_submission_packaging_and_validation.ipynb`. It creates a clean staging
 directory, copies the official `cg` runtime plus the version-controlled policy

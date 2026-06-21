@@ -9,6 +9,9 @@ reaches a meaningful paired evaluation or Kaggle submission.
 | --- | --- | --- | --- | ---: | --- | ---: | --- | --- |
 | 2026-06-21 | `baseline-deterministic-v1` | self-play | starter | 4 games | 2-0-2 by player 0 | n/a | n/a | Reliability pass; freeze as control |
 | 2026-06-21 | `baseline-deterministic-v1` | official random policy | starter | 40 seat-balanced games | 5-0-35 | 0.125 | bootstrap 95%: [0.025, 0.225] | Reject for ladder; reliable but strategically weak |
+| 2026-06-21 | `development-first-v2` | attack-first v1 | starter | 40 seat-balanced games | 37-0-3 | 0.925 | bootstrap 95%: [0.825, 1.000] | Promote sequencing change |
+| 2026-06-21 | `development-first-v2` | official random policy | starter | 40 seat-balanced games | 32-0-8 | 0.800 | bootstrap 95%: [0.675, 0.925] | Pass control screen |
+| 2026-06-21 | `development-first-v2` | official random policy, independent screen | starter | 40 seat-balanced games | 31-0-9 | 0.775 | bootstrap 95%: [0.650, 0.900] | Confirm promotion |
 
 ## Kaggle submissions
 
@@ -37,8 +40,9 @@ reaches a meaningful paired evaluation or Kaggle submission.
 | Date (UTC) | Notebook | Version | Status | Verified output |
 | --- | --- | ---: | --- | --- |
 | 2026-06-21 | `pokemon-tcg-card-database-eda` | 3 | Complete | 1,267 cards plus bounded 1,306-page PDF-reference audit |
-| 2026-06-21 | `pokemon-tcg-agent-baseline-and-evaluation` | 4 | Complete | 4/4 contract games and 40 control games; explicit reject decision |
-| 2026-06-21 | `pokemon-tcg-submission-packaging` | 5 | Complete | Official tar.gz layout, staged runtime, and exact hashes verified |
+| 2026-06-21 | `pokemon-tcg-agent-baseline-and-evaluation` | 5 | Complete | Promoted agent: 31-0-9, score rate 0.775 |
+| 2026-06-21 | `pokemon-tcg-action-sequence-experiment` | 2 | Complete | 120 games; development-first promotion reproduced |
+| 2026-06-21 | `pokemon-tcg-submission-packaging` | 6 | Complete | Promoted-agent tar.gz, staged runtime, and hashes verified |
 
 The private Kaggle dataset
 [`tuannm3812/pokemon-tcg-ai-battle-agent-source`](https://www.kaggle.com/datasets/tuannm3812/pokemon-tcg-ai-battle-agent-source)
