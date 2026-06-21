@@ -1120,7 +1120,7 @@ SEQUENCING = [
     shutil.copy2(agent_dir / "deck.csv", WORK_DIR / "deck.csv")
     sys.path.insert(0, str(WORK_DIR))
 
-    from cg.api import OptionType, SelectContext, SelectType, to_observation_class
+    from cg.api import OptionType, SelectContext, SelectType, all_attack, to_observation_class
     from cg.game import battle_finish, battle_select, battle_start
 
     baseline = load_module("attack_first_baseline", WORK_DIR / "main.py")
@@ -1392,12 +1392,145 @@ SEQUENCING = [
     print(f"Saved evidence to {output / 'action_sequence_experiment.json'}")
     """),
     md("""
-    ## 7. Interpretation
+    ## 7. Follow-up: printed-damage knockout exception
 
-    Promote only the tested priority dictionary; do not mix in attack scoring,
-    deck changes, or setup heuristics in the same commit. If held or rejected,
-    use the state snapshots to choose the next single change?most likely an
-    immediate-knockout exception or card-aware attachment scoring.
+    The promoted development-first ordering remains frozen. The follow-up adds
+    one exception: when a legal attack's printed base damage is at least the
+    opponent Active Pokemon's current HP, attack immediately. This heuristic
+    deliberately ignores weakness, resistance, temporary prevention, and
+    effect-dependent damage; those limitations make comparative simulation the
+    promotion authority.
+    """),
+    code("""
+    attack_by_id = {attack.attackId: attack for attack in all_attack()}
+    knockout_module = load_module("printed_knockout_candidate", WORK_DIR / "main.py")
+    knockout_module.MAIN_ACTION_PRIORITY = development_priority.copy()
+
+    class PrintedKnockoutPolicy:
+        def __init__(self, source_module):
+            self.source = source_module
+            self.events = []
+
+        def agent(self, obs_dict: dict) -> list[int]:
+            obs = to_observation_class(obs_dict)
+            if obs.select is None:
+                return self.source.read_deck_csv()
+            if (
+                obs.current is not None
+                and int(obs.select.type) == int(SelectType.MAIN)
+                and obs.current.players[1 - int(obs.current.yourIndex)].active
+            ):
+                opponent = obs.current.players[1 - int(obs.current.yourIndex)]
+                active = opponent.active[0]
+                if active is not None:
+                    candidates = []
+                    for index, option in enumerate(obs.select.option):
+                        if int(option.type) != int(OptionType.ATTACK):
+                            continue
+                        attack = attack_by_id.get(option.attackId)
+                        if attack is not None and int(attack.damage) >= int(active.hp):
+                            candidates.append((int(attack.damage), self.source._stable_key(option, index), index, attack))
+                    if candidates:
+                        damage, _, index, attack = min(candidates)
+                        competing = sorted({
+                            enum_name(OptionType, option.type)
+                            for option in obs.select.option
+                            if int(option.type) in {
+                                int(OptionType.EVOLVE), int(OptionType.ABILITY),
+                                int(OptionType.ATTACH), int(OptionType.PLAY),
+                            }
+                        })
+                        self.events.append({
+                            "turn": int(obs.current.turn),
+                            "player": int(obs.current.yourIndex),
+                            "opponent_hp": int(active.hp),
+                            "attack_id": int(attack.attackId),
+                            "attack_name": attack.name,
+                            "printed_damage": int(damage),
+                            "competing_development": competing,
+                        })
+                        return [index]
+            return self.source.agent(obs_dict)
+
+    knockout_candidate = PrintedKnockoutPolicy(knockout_module)
+    """),
+    code("""
+    followup_results, followup_snapshots, trigger_events = [], [], []
+    game_id = 10_000
+    for focal_player in (0, 1):
+        for repetition in range(GAMES_PER_SEAT):
+            before = len(knockout_candidate.events)
+            policies = {
+                focal_player: knockout_candidate,
+                1 - focal_player: candidate,
+            }
+            result, game_snapshots = play_game(
+                policies, focal_player, game_id, "knockout_vs_development"
+            )
+            followup_results.append(result)
+            followup_snapshots.extend(game_snapshots)
+            for event in knockout_candidate.events[before:]:
+                trigger_events.append({
+                    **event, "game": game_id, "focal_player": focal_player,
+                })
+            game_id += 1
+
+    followup_df = pd.DataFrame(followup_results)
+    followup_failures = followup_df[followup_df.status != "finished"]
+    assert followup_failures.empty, followup_failures.to_dict("records")
+    scores = followup_df.focal_score.to_numpy(dtype=float)
+    boot = rng.choice(scores, size=(BOOTSTRAP_SAMPLES, len(scores)), replace=True).mean(axis=1)
+    followup_summary = {
+        "matchup": "knockout_vs_development",
+        "games": len(scores),
+        "wins": int((scores == 1).sum()),
+        "draws": int((scores == 0.5).sum()),
+        "losses": int((scores == 0).sum()),
+        "score_rate": float(scores.mean()),
+        "ci_low": float(np.quantile(boot, 0.025)),
+        "ci_high": float(np.quantile(boot, 0.975)),
+        "triggers": len(trigger_events),
+        "triggers_with_competing_development": sum(
+            bool(event["competing_development"]) for event in trigger_events
+        ),
+    }
+    if followup_summary["ci_low"] > 0.5:
+        followup_decision = "PROMOTE: knockout exception clearly beats development-first"
+    elif followup_summary["ci_high"] < 0.5:
+        followup_decision = "REJECT: knockout exception is clearly worse"
+    else:
+        followup_decision = "HOLD: result overlaps parity"
+    display(pd.Series(followup_summary).to_frame("value"))
+    print(f"Follow-up decision: {followup_decision}")
+    display(pd.DataFrame(trigger_events).head(20))
+    """),
+    code("""
+    payload["knockout_followup"] = {
+        "single_change": "attack when printed base damage >= opponent active HP",
+        "summary": followup_summary,
+        "decision": followup_decision,
+        "limitations": [
+            "printed damage excludes weakness and resistance",
+            "printed damage excludes temporary prevention and reduction",
+            "effect-dependent bonus damage is not estimated",
+        ],
+        "results": followup_results,
+        "trigger_events": trigger_events,
+        "snapshots": followup_snapshots,
+    }
+    (output / "action_sequence_experiment.json").write_text(
+        json.dumps(payload, indent=2, default=str)
+    )
+    print(f"Updated evidence at {output / 'action_sequence_experiment.json'}")
+    """),
+    md("""
+    ## 8. Interpretation
+
+    The original sequencing result promotes development-first over attack-first.
+    The follow-up is a separate gate: promote the knockout exception only if it
+    beats the frozen development-first control without runtime failures. A hold
+    means collect more games or improve state-aware damage estimation; it is not
+    evidence to change the production agent.
     """),
 ]
 

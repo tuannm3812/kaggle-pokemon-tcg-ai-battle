@@ -80,9 +80,9 @@ unchanged.
 
 ## Near-term experiments
 
-1. State-aware attack ranking using immediate knockout and printed damage.
-2. Setup scoring using HP, retreat cost, and attack energy requirements.
-3. Attachment scoring based on turns-to-attack.
+1. State-aware damage estimation including resistance, prevention, and active effects.
+2. Attachment scoring based on turns-to-attack and target value.
+3. Setup scoring using HP, retreat cost, and attack energy requirements.
 4. First-player choice tested with seat-swapped matches.
 5. Selective one-ply search for attack/retreat decisions.
 
@@ -109,5 +109,18 @@ bootstrap 95% interval of `[0.825, 1.000]`. It beat the official random policy
 
 State snapshots support the causal hypothesis: development-first attacked with
 substantially more attached Energy and a larger Bench than attack-first. The
-priority change is promoted; the next experiment should preserve it and test
-an immediate-knockout exception as one isolated modification.
+priority change is promoted.
+
+## Printed-damage knockout follow-up
+
+The follow-up preserved the deck and development-first fallback, changing only
+one rule: attack immediately when a legal attack's printed base damage met or
+exceeded the opposing Active Pokemon's current HP. It completed 40 games without
+failures and scored `25-0-15` (`0.625`) against development-first, with a
+bootstrap 95% interval of `[0.475, 0.775]`. The exception triggered 21 times and
+displaced an available development action 11 times.
+
+Because the interval overlaps parity, the result is **HOLD**. Do not modify
+`agent/main.py`. Printed base damage omits resistance, temporary prevention or
+reduction, and conditional damage; a future candidate must improve that state
+model or gather a larger, opponent-diverse evidence set.

@@ -81,10 +81,13 @@ line. Simulator initialization remains the authoritative legality check.
 | Development-first beat attack-first `37-0-3` | Premature aggression was a causal weakness | Keep development-first as the control policy |
 | Development-first beat random `32-0-8` | The promoted ordering is a meaningful baseline | Test only one policy exception at a time |
 
-The next policy experiment should add an **immediate-knockout exception** to the
-promoted development-first agent. Keep the deck fixed during that experiment.
-After measuring the policy change, test increased Basic-Pokemon count separately;
-changing policy and deck together would make the result impossible to attribute.
+The printed-damage **immediate-knockout exception** has now been tested with the
+deck fixed. It beat development-first `25-0-15` over 40 games, but its bootstrap
+95% interval `[0.475, 0.775]` crossed parity, so the result is a hold rather than
+a promotion. The next policy experiment should model resistance, temporary
+damage reduction, and effect-dependent damage, or isolate card-aware attachment
+scoring. Test increased Basic-Pokemon count separately so policy and deck effects
+remain attributable.
 
 ## Episode telemetry
 
