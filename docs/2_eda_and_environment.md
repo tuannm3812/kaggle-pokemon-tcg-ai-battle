@@ -82,13 +82,13 @@ line. Simulator initialization remains the authoritative legality check.
 | Development-first beat random `32-0-8` | The promoted ordering is a meaningful baseline | Test only one policy exception at a time |
 
 The printed-damage **immediate-knockout exception** was held at `25-0-15`
-because its interval crossed parity. A separate attack-readiness attachment
-scorer then finished `20-0-20` (`0.500`, bootstrap 95% `[0.350, 0.650]`) with
-zero failures and 84 target changes. It sometimes favored Snover's nearby but
-low-value attack threshold over Mega Abomasnow ex or Kyogre, so readiness alone
-is insufficient. The next policy experiment should score expected value per
-attachment. Test increased Basic-Pokemon count separately so policy and deck
-effects remain attributable.
+because its interval crossed parity. Readiness-only attachment scoring and a
+corrected projected-value scorer both finished `20-0-20` (`0.500`, bootstrap
+95% `[0.350, 0.650]`). The value scorer changed 31 targets without failures but
+added no measurable advantage. Further hand-tuned ordering has diminishing
+returns in this mirror matchup. The next controlled experiment should freeze
+the promoted policy and test increased Basic-Pokemon count as a separate deck
+consistency intervention.
 
 ## Episode telemetry
 

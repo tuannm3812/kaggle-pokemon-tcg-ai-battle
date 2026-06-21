@@ -1678,12 +1678,178 @@ SEQUENCING = [
     print(f"Updated evidence at {output / 'action_sequence_experiment.json'}")
     """),
     md("""
-    ## 9. Interpretation
+    ## 9. Follow-up: projected value per attachment
+
+    The readiness-only scorer reached parity but sometimes completed Snover's
+    low-value attack before developing stronger attackers. This candidate still
+    changes only the target of a baseline-selected ATTACH action. It values a
+    target by strongest reliable printed damage divided by Energy still needed,
+    includes direct evolution potential, gives the Active Pokemon a small
+    immediacy multiplier, and preserves baseline behavior when all targets are
+    already at their useful threshold.
+    """),
+    code("""
+    evolution_children = {}
+    for card in card_by_id.values():
+        if card.evolvesFrom:
+            evolution_children.setdefault(card.evolvesFrom, []).append(card)
+
+    def own_attack_profile(card) -> tuple[int, int, str]:
+        attacks = [attack_by_id[attack_id] for attack_id in card.attacks]
+        reliable = [attack for attack in attacks if int(attack.damage) > 0]
+        if not reliable:
+            return 1, 0, card.name
+        strongest = max(
+            reliable, key=lambda attack: (int(attack.damage), -len(attack.energies))
+        )
+        return len(strongest.energies), int(strongest.damage), card.name
+
+    def projected_attack_profile(card_id: int) -> tuple[int, int, str]:
+        card = card_by_id[card_id]
+        profiles = [own_attack_profile(card)]
+        profiles.extend(
+            own_attack_profile(child)
+            for child in evolution_children.get(card.name, [])
+        )
+        return max(profiles, key=lambda item: (item[1], -item[0]))
+
+    value_module = load_module("attachment_value_candidate", WORK_DIR / "main.py")
+    value_module.MAIN_ACTION_PRIORITY = development_priority.copy()
+
+    class AttachmentValuePolicy:
+        ACTIVE_MULTIPLIER = 1.15
+
+        def __init__(self, source_module):
+            self.source = source_module
+            self.events = []
+
+        def agent(self, obs_dict: dict) -> list[int]:
+            obs = to_observation_class(obs_dict)
+            baseline_action = self.source.agent(obs_dict)
+            if obs.select is None or obs.current is None or not baseline_action:
+                return baseline_action
+            baseline_option = obs.select.option[baseline_action[0]]
+            if (
+                int(obs.select.type) != int(SelectType.MAIN)
+                or int(baseline_option.type) != int(OptionType.ATTACH)
+            ):
+                return baseline_action
+
+            scored = []
+            for index, option in enumerate(obs.select.option):
+                if int(option.type) != int(OptionType.ATTACH):
+                    continue
+                target = attachment_target(obs, option)
+                if target is None:
+                    continue
+                threshold, damage, projected_card = projected_attack_profile(int(target.id))
+                current_energy = len(target.energies)
+                remaining = max(threshold - current_energy, 0)
+                if remaining == 0:
+                    continue  # Preserve baseline behavior once every target is ready.
+                value = float(damage) / remaining
+                if int(option.inPlayArea) == int(AreaType.ACTIVE):
+                    value *= self.ACTIVE_MULTIPLIER
+                key = (
+                    -value, -damage,
+                    self.source._stable_key(option, index),
+                )
+                scored.append((
+                    key, index, option, target, threshold, damage,
+                    projected_card, value,
+                ))
+
+            if not scored:
+                return baseline_action
+            (_, chosen_index, chosen_option, target, threshold, damage,
+             projected_card, value) = min(scored)
+            if chosen_index != baseline_action[0]:
+                baseline_target = attachment_target(obs, baseline_option)
+                self.events.append({
+                    "turn": int(obs.current.turn),
+                    "player": int(obs.current.yourIndex),
+                    "baseline_target_card": int(baseline_target.id) if baseline_target else None,
+                    "chosen_target_card": int(target.id),
+                    "chosen_target_area": enum_name(AreaType, chosen_option.inPlayArea),
+                    "energy_before": len(target.energies),
+                    "projected_card": projected_card,
+                    "attack_threshold": threshold,
+                    "projected_damage": damage,
+                    "value_per_remaining_energy": value,
+                })
+            return [chosen_index]
+
+    value_candidate = AttachmentValuePolicy(value_module)
+    """),
+    code("""
+    value_results, value_snapshots, value_events = [], [], []
+    game_id = 30_000
+    for focal_player in (0, 1):
+        for repetition in range(GAMES_PER_SEAT):
+            before = len(value_candidate.events)
+            policies = {
+                focal_player: value_candidate,
+                1 - focal_player: candidate,
+            }
+            result, game_snapshots = play_game(
+                policies, focal_player, game_id, "attachment_value_vs_development"
+            )
+            value_results.append(result)
+            value_snapshots.extend(game_snapshots)
+            for event in value_candidate.events[before:]:
+                value_events.append({
+                    **event, "game": game_id, "focal_player": focal_player,
+                })
+            game_id += 1
+
+    value_df = pd.DataFrame(value_results)
+    value_failures = value_df[value_df.status != "finished"]
+    assert value_failures.empty, value_failures.to_dict("records")
+    scores = value_df.focal_score.to_numpy(dtype=float)
+    boot = rng.choice(scores, size=(BOOTSTRAP_SAMPLES, len(scores)), replace=True).mean(axis=1)
+    value_summary = {
+        "matchup": "attachment_value_vs_development",
+        "games": len(scores),
+        "wins": int((scores == 1).sum()),
+        "draws": int((scores == 0.5).sum()),
+        "losses": int((scores == 0).sum()),
+        "score_rate": float(scores.mean()),
+        "ci_low": float(np.quantile(boot, 0.025)),
+        "ci_high": float(np.quantile(boot, 0.975)),
+        "target_changes": len(value_events),
+    }
+    if value_summary["ci_low"] > 0.5:
+        value_decision = "PROMOTE: attachment value scoring clearly beats development-first"
+    elif value_summary["ci_high"] < 0.5:
+        value_decision = "REJECT: attachment value scoring is clearly worse"
+    else:
+        value_decision = "HOLD: result overlaps parity"
+    display(pd.Series(value_summary).to_frame("value"))
+    print(f"Attachment-value decision: {value_decision}")
+    display(pd.DataFrame(value_events).head(20))
+    """),
+    code("""
+    payload["attachment_value_followup"] = {
+        "single_change": "projected damage per remaining Energy for ATTACH targets",
+        "active_multiplier": AttachmentValuePolicy.ACTIVE_MULTIPLIER,
+        "summary": value_summary,
+        "decision": value_decision,
+        "results": value_results,
+        "target_change_events": value_events,
+        "snapshots": value_snapshots,
+    }
+    (output / "action_sequence_experiment.json").write_text(
+        json.dumps(payload, indent=2, default=str)
+    )
+    print(f"Updated evidence at {output / 'action_sequence_experiment.json'}")
+    """),
+    md("""
+    ## 10. Interpretation
 
     The original sequencing result promotes development-first over attack-first.
     Each follow-up has a separate gate and frozen control. Promote attachment
-    scoring only if it beats development-first without runtime failures; a hold
-    or rejection leaves `agent/main.py` unchanged.
+    value scoring only if its interval clears parity without runtime failures;
+    otherwise leave `agent/main.py` unchanged.
     """),
 ]
 

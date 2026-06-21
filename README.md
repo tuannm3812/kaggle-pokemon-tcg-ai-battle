@@ -90,12 +90,13 @@ Development-first beat attack-first `37-0-3` (`0.925`, bootstrap 95% interval
 `[0.675, 0.925]`). The independent standard screen scored `31-0-9` (`0.775`,
 interval `[0.650, 0.900]`).
 
-This agent passes the random-control screen but is not yet ladder-proven. A
-printed-damage knockout exception was held at `25-0-15` because its uncertainty
-crossed parity. Attack-readiness attachment scoring then produced exact parity
-at `20-0-20` (`0.500`, 95% interval `[0.350, 0.650]`) despite 84 target changes.
-Both candidates are held and the production agent remains unchanged. The next
-experiment should score value per attachment rather than threshold distance.
+This agent passes the random-control screen but is not yet ladder-proven. The
+knockout, readiness-only attachment, and corrected value-per-attachment
+follow-ups all failed their promotion gates. The value scorer finished `20-0-20`
+(`0.500`, 95% interval `[0.350, 0.650]`) with 31 meaningful target changes and
+zero failures. The production agent remains unchanged. The next controlled
+experiment should address the deck's quantified opening-setup weakness while
+freezing the policy.
 
 ## Kaggle validation
 
@@ -105,7 +106,7 @@ The complete workflow was run on Kaggle on 21 June 2026:
 | --- | --- | --- |
 | [Card Database EDA](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-card-database-eda) | Complete | 1,267 cards plus bounded PDF-reference audit |
 | [Agent Evaluation](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-agent-baseline-and-evaluation) | Complete | Promoted agent passed random screen at 0.775 |
-| [Action Sequence Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-action-sequence-experiment) | Complete | Development-first promoted; knockout and attachment follow-ups held |
+| [Action Sequence Experiment](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-action-sequence-experiment) | Complete | Development-first promoted; three isolated follow-ups held |
 | [Submission Packaging](https://www.kaggle.com/code/tuannm3812/pokemon-tcg-submission-packaging) | Complete | Promoted-agent tar.gz and hashes verified |
 
 The agent source is mounted from a private Kaggle dataset and credentials remain

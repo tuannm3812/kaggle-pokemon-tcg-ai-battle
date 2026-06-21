@@ -80,9 +80,9 @@ unchanged.
 
 ## Near-term experiments
 
-1. Attachment value scoring that balances printed damage, remaining Energy, evolution potential, and Active relevance.
-2. State-aware damage estimation including resistance, prevention, and active effects.
-3. Setup scoring using HP, retreat cost, and attack energy requirements.
+1. Deck-consistency testing with increased Basic-Pokemon count and frozen policy.
+2. Opponent-diverse evaluation against stronger frozen agents.
+3. State-aware damage estimation including resistance, prevention, and active effects.
 4. First-player choice tested with seat-swapped matches.
 5. Selective one-ply search for attack/retreat decisions.
 
@@ -138,3 +138,17 @@ Mega Abomasnow ex or Kyogre. The next scorer should optimize expected value per
 attachment, including printed damage, Energy still required, evolution
 potential, current Active relevance, and the cost of concentrating excess
 Energy. The production agent remains unchanged.
+
+## Projected attachment-value follow-up
+
+The corrected value scorer projected Snover into Mega Abomasnow ex, divided
+reliable printed damage by remaining Energy, applied a small Active multiplier,
+and returned to baseline behavior when all targets were ready. This correction
+removed the observed over-attachment defect: all 31 changed targets had fewer
+than three Energy before attachment.
+
+Across 40 Kaggle games it finished `20-0-20` (`0.500`) with a bootstrap 95%
+interval of `[0.350, 0.650]` and zero failures. The result is **HOLD** and
+`agent/main.py` remains unchanged. Since three isolated policy refinements have
+not cleared parity, the next experiment should freeze policy and address the
+starter deck's 45.86% no-Basic opening risk.
