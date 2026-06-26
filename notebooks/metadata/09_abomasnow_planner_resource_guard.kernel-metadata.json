@@ -1,0 +1,17 @@
+{
+  "id": "tuannm3812/pokemon-tcg-abomasnow-resource-guards",
+  "title": "Pokemon TCG Abomasnow Resource Guards",
+  "code_file": "09_abomasnow_planner_resource_guard_experiment.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": false,
+  "competition_sources": [
+    "pokemon-tcg-ai-battle"
+  ],
+  "dataset_sources": [
+    "tuannm3812/pokemon-tcg-ai-battle-agent-source"
+  ],
+  "kernel_sources": []
+}
