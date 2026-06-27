@@ -21,11 +21,13 @@ MAIN_ACTION_PRIORITY = {
 
 def read_deck_csv() -> list[int]:
     """Load the 60 card IDs from the submission directory."""
-    candidates = (
-        Path(__file__).resolve().with_name("deck.csv"),
-        Path("deck.csv"),
+    candidates = [
         Path("/kaggle_simulations/agent/deck.csv"),
-    )
+        Path("deck.csv"),
+    ]
+    module_file = globals().get("__file__")
+    if module_file:
+        candidates.insert(0, Path(module_file).resolve().with_name("deck.csv"))
     path = next((candidate for candidate in candidates if candidate.exists()), None)
     if path is None:
         raise FileNotFoundError("Could not locate deck.csv beside the agent or at runtime paths.")
