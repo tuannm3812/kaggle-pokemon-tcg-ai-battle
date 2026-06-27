@@ -40,6 +40,8 @@ AGENT_PATHS = {
     "promoted": ROOT / "agent" / "main.py",
     "planner_v2": ROOT / "candidates" / "abomasnow_planner_v2" / "main.py",
     "tactical_ko_v1": ROOT / "candidates" / "tactical_ko_v1" / "main.py",
+    "hybrid_card_ko_v1": ROOT / "candidates" / "hybrid_card_ko_v1" / "main.py",
+    "card_selection_v1": ROOT / "candidates" / "card_selection_v1" / "main.py",
 }
 
 AUTHOR_POLICIES = {
