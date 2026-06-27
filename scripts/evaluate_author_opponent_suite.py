@@ -42,6 +42,8 @@ AGENT_PATHS = {
     "tactical_ko_v1": ROOT / "candidates" / "tactical_ko_v1" / "main.py",
     "hybrid_card_ko_v1": ROOT / "candidates" / "hybrid_card_ko_v1" / "main.py",
     "card_selection_v1": ROOT / "candidates" / "card_selection_v1" / "main.py",
+    "attach_from_v1": ROOT / "candidates" / "attach_from_v1" / "main.py",
+    "setup_active_v1": ROOT / "candidates" / "setup_active_v1" / "main.py",
 }
 
 AUTHOR_POLICIES = {
