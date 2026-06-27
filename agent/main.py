@@ -96,7 +96,19 @@ def _choose_indices(obs: object) -> list[int]:
 
 def agent(obs_dict: dict) -> list[int]:
     """Return a legal deck or deterministic action for an observation."""
-    obs = to_observation_class(obs_dict)
+    if not isinstance(obs_dict, dict):
+        return read_deck_csv()
+    try:
+        obs = to_observation_class(obs_dict)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return read_deck_csv()
     if obs.select is None:
         return read_deck_csv()
-    return _choose_indices(obs)
+    try:
+        return _choose_indices(obs)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        options = list(obs.select.option)
+        required = max(0, int(obs.select.minCount))
+        requested = max(required, min(int(obs.select.maxCount), len(options)))
+        count = min(requested, len(options))
+        return list(range(count))
