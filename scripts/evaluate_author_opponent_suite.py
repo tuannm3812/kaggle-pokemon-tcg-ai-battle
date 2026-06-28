@@ -177,6 +177,12 @@ def run_game(
     from cg.game import battle_select, battle_start
 
     random.seed(seed)
+    try:
+        import numpy as np
+
+        np.random.seed(seed % (2**32 - 1))
+    except Exception:
+        pass
     decks = [candidate.deck, opponent.deck] if candidate_seat == 0 else [opponent.deck, candidate.deck]
     policies = [None, None]
     policies[candidate_seat] = candidate
