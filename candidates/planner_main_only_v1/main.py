@@ -49,14 +49,16 @@ class AttackPlan:
 
 def read_deck_csv() -> list[int]:
     """Load and validate the candidate's frozen 60-card deck."""
-    candidates = (
-        Path(__file__).resolve().with_name("deck.csv"),
-        Path("deck.csv"),
+    candidates = [
         Path("/kaggle_simulations/agent/deck.csv"),
-    )
+        Path("deck.csv"),
+    ]
+    module_file = globals().get("__file__")
+    if module_file:
+        candidates.insert(0, Path(module_file).resolve().with_name("deck.csv"))
     path = next((candidate for candidate in candidates if candidate.exists()), None)
     if path is None:
-        raise FileNotFoundError("Could not locate deck.csv.")
+        raise FileNotFoundError("Could not locate deck.csv beside the agent or at runtime paths.")
     deck = [int(line.strip()) for line in path.read_text().splitlines() if line.strip()]
     if len(deck) != 60:
         raise ValueError(f"Expected 60 cards in {path}, found {len(deck)}.")
