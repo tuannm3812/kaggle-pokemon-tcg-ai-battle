@@ -31,6 +31,7 @@ not a confirmed ladder improvement.
 Detailed experiment reports now live under [experiments/](experiments/).
 Start with:
 
+- [31_strict_promotion_gate_results.md](experiments/31_strict_promotion_gate_results.md)
 - [30_post_submission_ladder_risk_plan.md](experiments/30_post_submission_ladder_risk_plan.md)
 - [27_planner_ablation_results.md](experiments/27_planner_ablation_results.md)
 - [26_setup_active_ablation_results.md](experiments/26_setup_active_ablation_results.md)

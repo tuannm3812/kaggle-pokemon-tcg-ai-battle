@@ -48,6 +48,7 @@ AGENT_PATHS = {
     "setup_second_kyogre_v1": ROOT / "candidates" / "setup_second_kyogre_v1" / "main.py",
     "planner_main_only_v1": ROOT / "candidates" / "planner_main_only_v1" / "main.py",
     "planner_no_retreat_v1": ROOT / "candidates" / "planner_no_retreat_v1" / "main.py",
+    "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
 
 AUTHOR_POLICIES = {
