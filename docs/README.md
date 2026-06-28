@@ -6,7 +6,7 @@ Latest Kaggle status check on 2026-06-28:
 
 | Submission | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `COMPLETE` | `485.6` |
+| `54126975` | `planner main only v1` | `COMPLETE` | `466.3` |
 | `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `493.8` |
 
 The latest submitted candidate is valid but is currently scoring below the
@@ -31,6 +31,7 @@ not a confirmed ladder improvement.
 Detailed experiment reports now live under [experiments/](experiments/).
 Start with:
 
+- [30_post_submission_ladder_risk_plan.md](experiments/30_post_submission_ladder_risk_plan.md)
 - [27_planner_ablation_results.md](experiments/27_planner_ablation_results.md)
 - [26_setup_active_ablation_results.md](experiments/26_setup_active_ablation_results.md)
 - [22_author_opponent_suite_results.md](experiments/22_author_opponent_suite_results.md)

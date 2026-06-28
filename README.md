@@ -92,7 +92,7 @@ Latest Kaggle status check on 2026-06-28:
 
 | Submission | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `COMPLETE` | `485.6` |
+| `54126975` | `planner main only v1` | `COMPLETE` | `466.3` |
 | `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `493.8` |
 
 Conclusion: keep treating `planner_main_only_v1` as a validated experiment, not

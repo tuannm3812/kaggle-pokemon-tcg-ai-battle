@@ -13,7 +13,7 @@ Submitted on 2026-06-28.
 | Package | `scratch/submission_packages/planner_main_only_v1/submission.tar.gz` |
 | Status | `SubmissionStatus.COMPLETE` |
 | Public score at first completion check | `600.0` |
-| Public score at latest check | `485.6` |
+| Public score at latest check | `466.3` |
 
 ## Comparison
 
