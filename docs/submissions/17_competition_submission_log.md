@@ -15,7 +15,8 @@ official-random, author-suite, packaging, staged self-play, and missing
 | Message | `planner main only v1` |
 | Kaggle timestamp | `2026-06-28 03:38:02.607000` |
 | Status at last check | `SubmissionStatus.COMPLETE` |
-| Public score at last check | `600.0` |
+| Public score at first completion check | `600.0` |
+| Public score at latest check | `485.6` |
 
 This is now the latest accepted submission. At the same CLI check, the previous
 accepted baseline submission `54100265` showed public score `493.8`.

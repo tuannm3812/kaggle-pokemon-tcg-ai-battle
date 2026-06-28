@@ -32,16 +32,17 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
 |- agent/                         # Version-controlled policy and deck
 |  |- main.py
 |  `- deck.csv
-|- docs/                          # Rules, strategy, evidence, and runbook
+|- docs/
+|  |- README.md                  # Documentation index and latest score snapshot
+|  |- experiments/               # Detailed experiment evidence
+|  `- submissions/               # Packaging and Kaggle submission history
 |- notebooks/
+|  |- README.md                  # Notebook index; filenames kept stable for Kaggle
 |  |- 01_card_database_eda.ipynb
 |  |- 02_agent_baseline_and_local_evaluation.ipynb
 |  |- 03_submission_packaging_and_validation.ipynb
-|  |- 04_action_sequence_experiment.ipynb
-|  |- 05_deck_consistency_experiment.ipynb
 |  `- metadata/                  # Kaggle kernel metadata templates
-|- scripts/
-|  `- build_notebooks.py         # Rebuilds notebooks deterministically
+|- scripts/                      # Notebook builders and local evaluation tools
 `- requirements.txt
 ```
 
@@ -59,7 +60,7 @@ paired games, win/draw/loss counts, and uncertainty—not average damage.
 6. Run `03_submission_packaging_and_validation.ipynb`. Download its verified
    `submission.tar.gz`, then submit it on the competition page.
 7. Record validation, uncertainty, episode count, and the promotion/submission
-   decision in `docs/6_experiment_log.md`.
+   decision in `docs/6_experiment_log.md` or the relevant `docs/experiments/` report.
 
 See [the full Kaggle runbook](docs/5_kaggle_runbook.md) for exact steps and
 failure diagnostics.
@@ -81,24 +82,22 @@ Credentials are intentionally absent from the repository. Prefer Kaggle's
 attached competition data in notebooks. For local API use, keep the token
 outside the repo and never print it in notebook output.
 
-## Current agent
+## Current agent and score snapshot
 
-`agent/main.py` is the promoted deterministic development-first policy. Its
-main-phase order is evolve, ability, attach, play, attack, retreat, discard,
-then end. The legality shield and stable tie-breaking remain unchanged.
+`agent/main.py` remains the stable promoted baseline source. Recent experiments
+produced `planner_main_only_v1`, which validated and submitted successfully, but
+its ladder score later drifted below the previous accepted baseline.
 
-The single-change sequencing experiment completed 120 games with no failures.
-Development-first beat attack-first `37-0-3` (`0.925`, bootstrap 95% interval
-`[0.825, 1.000]`) and beat the random control `32-0-8` (`0.800`, interval
-`[0.675, 0.925]`). The independent standard screen scored `31-0-9` (`0.775`,
-interval `[0.650, 0.900]`).
+Latest Kaggle status check on 2026-06-28:
 
-This agent passes the random-control screen but is not yet ladder-proven. Three
-isolated policy follow-ups failed their promotion gates. An eight-Basic deck
-then improved exact setup probability from 54.14% to 65.36% but finished
-`40-0-40` (`0.500`, 95% interval `[0.3875, 0.6125]`) against the starter deck.
-The production policy and deck remain unchanged. The next screen should measure
-actual first-player effects and add stronger frozen opponents.
+| Submission | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54126975` | `planner main only v1` | `COMPLETE` | `485.6` |
+| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `493.8` |
+
+Conclusion: keep treating `planner_main_only_v1` as a validated experiment, not
+a confirmed ladder improvement. See [docs/README.md](docs/README.md) for the
+organized evidence trail.
 
 ## Kaggle validation
 
