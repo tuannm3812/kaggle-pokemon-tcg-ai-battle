@@ -44,6 +44,8 @@ AGENT_PATHS = {
     "card_selection_v1": ROOT / "candidates" / "card_selection_v1" / "main.py",
     "attach_from_v1": ROOT / "candidates" / "attach_from_v1" / "main.py",
     "setup_active_v1": ROOT / "candidates" / "setup_active_v1" / "main.py",
+    "setup_first_snover_v1": ROOT / "candidates" / "setup_first_snover_v1" / "main.py",
+    "setup_second_kyogre_v1": ROOT / "candidates" / "setup_second_kyogre_v1" / "main.py",
 }
 
 AUTHOR_POLICIES = {
