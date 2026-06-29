@@ -2,15 +2,15 @@
 
 ## Current status
 
-Latest Kaggle status check on 2026-06-28:
+Latest Kaggle status check on 2026-06-29:
 
 | Submission | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `COMPLETE` | `466.3` |
-| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `493.8` |
+| `54126975` | `planner main only v1` | `COMPLETE` | `493.9` |
+| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `484.0` |
 
-The latest submitted candidate is valid but is currently scoring below the
-previous accepted baseline. Treat `planner_main_only_v1` as a useful experiment,
+The latest submitted candidate is valid but is currently scoring above the
+previous accepted baseline, but the score has been volatile. Treat `planner_main_only_v1` as a useful experiment,
 not a confirmed ladder improvement.
 
 ## Core docs
@@ -31,6 +31,7 @@ not a confirmed ladder improvement.
 Detailed experiment reports now live under [experiments/](experiments/).
 Start with:
 
+- [32_notebook_organization_plan.md](experiments/32_notebook_organization_plan.md)
 - [31_strict_promotion_gate_results.md](experiments/31_strict_promotion_gate_results.md)
 - [30_post_submission_ladder_risk_plan.md](experiments/30_post_submission_ladder_risk_plan.md)
 - [27_planner_ablation_results.md](experiments/27_planner_ablation_results.md)

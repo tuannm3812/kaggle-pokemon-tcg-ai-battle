@@ -88,12 +88,12 @@ outside the repo and never print it in notebook output.
 produced `planner_main_only_v1`, which validated and submitted successfully, but
 its ladder score later drifted below the previous accepted baseline.
 
-Latest Kaggle status check on 2026-06-28:
+Latest Kaggle status check on 2026-06-29:
 
 | Submission | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `COMPLETE` | `466.3` |
-| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `493.8` |
+| `54126975` | `planner main only v1` | `COMPLETE` | `493.9` |
+| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `484.0` |
 
 Conclusion: keep treating `planner_main_only_v1` as a validated experiment, not
 a confirmed ladder improvement. See [docs/README.md](docs/README.md) for the
