@@ -50,6 +50,7 @@ AGENT_PATHS = {
     "planner_no_retreat_v1": ROOT / "candidates" / "planner_no_retreat_v1" / "main.py",
     "lucario_adapted_v1": ROOT / "candidates" / "lucario_adapted_v1" / "main.py",
     "lucario_adapted_v2": ROOT / "candidates" / "lucario_adapted_v2" / "main.py",
+    "lucario_adapted_v3": ROOT / "candidates" / "lucario_adapted_v3" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
 
