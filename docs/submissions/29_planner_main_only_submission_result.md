@@ -13,7 +13,7 @@ Submitted on 2026-06-28.
 | Package | `scratch/submission_packages/planner_main_only_v1/submission.tar.gz` |
 | Status | `SubmissionStatus.COMPLETE` |
 | Public score at first completion check | `600.0` |
-| Public score at latest check | `491.6` |
+| Public score at latest check | `495.2` |
 
 ## Comparison
 
@@ -21,7 +21,7 @@ At the same status check, the previous accepted baseline submission showed:
 
 | Submission ref | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `464.8` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `478.4` |
 
 The new planner-main-only submission is accepted and remains above the previous
 accepted baseline at the latest check, but the score has been volatile. Treat it
@@ -43,8 +43,8 @@ python -m kaggle competitions submissions pokemon-tcg-ai-battle
 
 | Submission ref | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `491.6` |
-| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `464.8` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `495.2` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `478.4` |
 
 Decision: do not submit another planner-only candidate yet. Use the author
 archetype deck suite to build and gate a stronger adapted archetype candidate,

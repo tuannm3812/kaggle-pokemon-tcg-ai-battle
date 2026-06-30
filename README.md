@@ -92,8 +92,8 @@ Latest Kaggle status check on 2026-06-30:
 
 | Submission | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `COMPLETE` | `491.6` |
-| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `464.8` |
+| `54126975` | `planner main only v1` | `COMPLETE` | `495.2` |
+| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `478.4` |
 
 Conclusion: keep treating `planner_main_only_v1` as a validated experiment, not
 a confirmed ladder breakthrough. It remains ahead of the previous accepted
