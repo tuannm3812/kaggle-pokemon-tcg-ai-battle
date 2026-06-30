@@ -48,6 +48,7 @@ AGENT_PATHS = {
     "setup_second_kyogre_v1": ROOT / "candidates" / "setup_second_kyogre_v1" / "main.py",
     "planner_main_only_v1": ROOT / "candidates" / "planner_main_only_v1" / "main.py",
     "planner_no_retreat_v1": ROOT / "candidates" / "planner_no_retreat_v1" / "main.py",
+    "lucario_adapted_v1": ROOT / "candidates" / "lucario_adapted_v1" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
 
@@ -131,15 +132,23 @@ def stage_runtime(sdk_dir: Path) -> None:
 def load_local_policy(name: str, path: Path) -> Policy:
     if not path.exists():
         raise FileNotFoundError(path)
-    module_path = RUNTIME_ROOT / f"{name}.py"
+    module_dir = RUNTIME_ROOT / f"local_{name}"
+    module_dir.mkdir(parents=True, exist_ok=True)
+    module_path = module_dir / "main.py"
     shutil.copy2(path, module_path)
-    module = load_module(f"local_{name}", module_path, cwd=RUNTIME_ROOT)
+
+    source_deck = path.with_name("deck.csv")
+    if not source_deck.exists():
+        source_deck = ROOT / "agent" / "deck.csv"
+    shutil.copy2(source_deck, module_dir / "deck.csv")
+
+    module = load_module(f"local_{name}", module_path, cwd=module_dir)
     if not hasattr(module, "agent"):
         raise AttributeError(f"{path} does not expose agent()")
     if hasattr(module, "read_deck_csv"):
         deck = module.read_deck_csv()
     else:
-        deck = read_deck(RUNTIME_ROOT / "deck.csv")
+        deck = read_deck(module_dir / "deck.csv")
     return Policy(name=name, agent=module.agent, deck=deck)
 
 
