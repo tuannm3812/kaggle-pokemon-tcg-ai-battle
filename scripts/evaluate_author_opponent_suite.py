@@ -53,7 +53,6 @@ AGENT_PATHS = {
     "lucario_adapted_v2": ROOT / "candidates" / "lucario_adapted_v2" / "main.py",
     "lucario_adapted_v3": ROOT / "candidates" / "lucario_adapted_v3" / "main.py",
     "iono_adapted_v1": ROOT / "candidates" / "iono_adapted_v1" / "main.py",
-    "iono_adapted_v2": ROOT / "candidates" / "iono_adapted_v2" / "main.py",
     "iono_public_sample_v1": ROOT / "candidates" / "iono_public_sample_v1" / "main.py",
     "lucario_public_sample_v1": ROOT / "candidates" / "lucario_public_sample_v1" / "main.py",
     "lucario_public_sample_v2": ROOT / "candidates" / "lucario_public_sample_v2" / "main.py",

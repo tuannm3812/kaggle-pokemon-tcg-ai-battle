@@ -90,3 +90,17 @@ Recommended next step:
 3. if continuing Lucario improvements, trace Abomasnow wins versus losses at the
    turn/board level and target a narrow condition rather than broad setup
    priorities.
+
+## Iono v2 cleanup
+
+An untracked `candidates/iono_adapted_v2` folder was found from an earlier
+unfinished experiment. A compact exact-archetype screen rejected it:
+
+| Opponent archetype | Result | Score rate |
+| --- | ---: | ---: |
+| Abomasnow | 0-4 | 0.000 |
+| Dragapult | 0-4 | 0.000 |
+| Iono | 1-3 | 0.250 |
+| Lucario | 0-4 | 0.000 |
+
+Decision: remove the untracked folder and do not continue Iono adapted v2.
