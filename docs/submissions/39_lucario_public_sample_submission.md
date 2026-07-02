@@ -89,3 +89,20 @@ Conclusion: the episode evidence suggests that switching to a stronger complete
 archetype package mattered more than incremental planner tuning on the old
 Abomasnow/Kyogre agent.
 
+## 2026-07-03 score check
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `658.5` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `556.4` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+The Lucario submission remains the active best submission. Its public score has
+drifted from `661.3` to `658.5`, still `+102.1` above the previous planner
+submission at this check.

@@ -22,13 +22,14 @@ import os
 import random
 import shutil
 import sys
+import tempfile
 from typing import Any, Callable
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRATCH = ROOT / "scratch"
 AUTHOR_ROOT = SCRATCH / "author_references"
-RUNTIME_ROOT = SCRATCH / "author_suite_runtime"
+RUNTIME_ROOT = Path(os.environ.get("POKEMON_TCG_RUNTIME_ROOT", Path(tempfile.gettempdir()) / "pokemon_tcg_author_suite_runtime"))
 RESULTS_PATH = SCRATCH / "author_opponent_suite_results.json"
 
 SDK_CANDIDATES = (
@@ -52,8 +53,10 @@ AGENT_PATHS = {
     "lucario_adapted_v2": ROOT / "candidates" / "lucario_adapted_v2" / "main.py",
     "lucario_adapted_v3": ROOT / "candidates" / "lucario_adapted_v3" / "main.py",
     "iono_adapted_v1": ROOT / "candidates" / "iono_adapted_v1" / "main.py",
+    "iono_adapted_v2": ROOT / "candidates" / "iono_adapted_v2" / "main.py",
     "iono_public_sample_v1": ROOT / "candidates" / "iono_public_sample_v1" / "main.py",
     "lucario_public_sample_v1": ROOT / "candidates" / "lucario_public_sample_v1" / "main.py",
+    "lucario_public_sample_v2": ROOT / "candidates" / "lucario_public_sample_v2" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
 
@@ -127,11 +130,24 @@ def sanitize_author_source(source_path: Path) -> str:
 
 def stage_runtime(sdk_dir: Path) -> None:
     if RUNTIME_ROOT.exists():
-        shutil.rmtree(RUNTIME_ROOT)
-    shutil.copytree(sdk_dir, RUNTIME_ROOT)
+        shutil.rmtree(RUNTIME_ROOT, ignore_errors=True)
+    shutil.copytree(
+        sdk_dir,
+        RUNTIME_ROOT,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+        dirs_exist_ok=True,
+    )
     shutil.copy2(ROOT / "agent" / "deck.csv", RUNTIME_ROOT / "deck.csv")
-    if str(RUNTIME_ROOT) not in sys.path:
-        sys.path.insert(0, str(RUNTIME_ROOT))
+
+    # Repeated local evaluations in a synced Drive workspace can leave stale
+    # ``cg`` modules pointing at an old runtime. Force the freshly staged SDK to
+    # the front and reload it on the next import.
+    runtime_path = str(RUNTIME_ROOT.resolve())
+    sys.path[:] = [entry for entry in sys.path if entry != runtime_path]
+    sys.path.insert(0, runtime_path)
+    for module_name in list(sys.modules):
+        if module_name == "cg" or module_name.startswith("cg."):
+            del sys.modules[module_name]
 
 
 def load_local_policy(name: str, path: Path) -> Policy:
@@ -273,6 +289,13 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--candidates",
+        nargs="+",
+        default=None,
+        choices=sorted(AGENT_PATHS),
+        help="Optional candidate keys to evaluate. Defaults to every registered candidate.",
+    )
     parser.add_argument("--games-per-cell", type=int, default=3)
     parser.add_argument("--max-decisions", type=int, default=5000)
     parser.add_argument("--seed", type=int, default=20260627)
@@ -281,7 +304,12 @@ def main() -> None:
     sdk_dir = find_sdk_dir()
     stage_runtime(sdk_dir)
 
-    candidates = [load_local_policy(name, path) for name, path in AGENT_PATHS.items() if path.exists()]
+    candidate_items = (
+        [(name, AGENT_PATHS[name]) for name in args.candidates]
+        if args.candidates
+        else list(AGENT_PATHS.items())
+    )
+    candidates = [load_local_policy(name, path) for name, path in candidate_items if path.exists()]
     opponents = [load_author_policy(name, path) for name, path in AUTHOR_POLICIES.items() if path.exists()]
     if not opponents:
         raise FileNotFoundError(f"No author references found under {AUTHOR_ROOT}")
