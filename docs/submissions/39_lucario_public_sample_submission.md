@@ -151,3 +151,26 @@ Outcome: v3 validated successfully but did not improve the active v1 leaderboard
 score. The late-game deck-safety brake appears too conservative or too narrow
 for the public leaderboard mix, despite positive local head-to-head evidence.
 
+## 2026-07-03 v3 score drift check
+
+A later Kaggle score refresh showed that the v3 leaderboard probe drifted upward
+and became the active best submission.
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `742.0` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `663.8` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Insight: the first completed v3 score snapshot (`600.0`) was not stable. The
+later score (`742.0`) matches the local confirmation gate direction better:
+`lucario_public_sample_v3` beat `lucario_public_sample_v1` head-to-head 14-6
+with Wilson CI `[0.5457, 0.8193]`.
+
