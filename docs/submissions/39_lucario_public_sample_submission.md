@@ -216,3 +216,25 @@ Decision note: continue waiting on v3 and do not submit v4 yet. v4 is locally
 interesting, but its confirmation gate against v3 was only `11-9` and included
 a `0-5` collapse in `seat_0_player_zero_first_true`.
 
+## 2026-07-03 v3 current score check
+
+A fresh score refresh showed v3 drifting down from the prior rebound snapshot,
+while still remaining the active best submitted agent.
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `714.0` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `657.1` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Decision note: continue using v3 as the active best submission. Do not submit v4
+from the current evidence because its confirmation match against v3 was only
+`11-9` and included a `0-5` collapse in `seat_0_player_zero_first_true`.
+
