@@ -238,3 +238,32 @@ Decision note: continue using v3 as the active best submission. Do not submit v4
 from the current evidence because its confirmation match against v3 was only
 `11-9` and included a `0-5` collapse in `seat_0_player_zero_first_true`.
 
+## 2026-07-03 Kojimar simple baseline submission
+
+Submitted the extracted Kojimar simple baseline candidate as the next controlled
+leaderboard probe after strong local evidence.
+
+| Field | Value |
+| --- | --- |
+| Submission ref | `54303967` |
+| Candidate | `kojimar_simple_baseline_v1` |
+| Message | `kojimar simple baseline v1` |
+| Package | `scratch/submission_packages/kojimar_simple_baseline_v1/submission.tar.gz` |
+| Status | `SubmissionStatus.COMPLETE` |
+| Initial public score | `600.0` |
+
+Score table immediately after completion:
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54303967` | `kojimar simple baseline v1` | `SubmissionStatus.COMPLETE` | `600.0` |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `712.0` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `662.0` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Outcome: the candidate validated successfully but the first public score snapshot
+is below active v3. Continue tracking because v3 previously moved from `600.0`
+to much higher after additional matches, but do not treat Kojimar v1 as active
+best unless its score drifts above v3.
+
