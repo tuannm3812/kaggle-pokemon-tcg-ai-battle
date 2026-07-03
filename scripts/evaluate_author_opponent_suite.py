@@ -57,6 +57,7 @@ AGENT_PATHS = {
     "lucario_public_sample_v1": ROOT / "candidates" / "lucario_public_sample_v1" / "main.py",
     "lucario_public_sample_v2": ROOT / "candidates" / "lucario_public_sample_v2" / "main.py",
     "lucario_public_sample_v3": ROOT / "candidates" / "lucario_public_sample_v3" / "main.py",
+    "lucario_public_sample_v4": ROOT / "candidates" / "lucario_public_sample_v4" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
 
