@@ -174,3 +174,24 @@ later score (`742.0`) matches the local confirmation gate direction better:
 `lucario_public_sample_v3` beat `lucario_public_sample_v1` head-to-head 14-6
 with Wilson CI `[0.5457, 0.8193]`.
 
+## 2026-07-03 v3 score follow-up check
+
+A later refresh showed normal leaderboard-score drift, with v3 still the active
+best submitted agent.
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `701.8` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `654.6` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Insight: v3 drifted down from the previous `742.0` snapshot, but it remains
+`+47.2` above v1 and `+141.5` above the older planner submission at this check.
+
