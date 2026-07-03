@@ -123,3 +123,31 @@ python -m kaggle competitions submissions pokemon-tcg-ai-battle
 
 The active Lucario submission continues to drift upward and remains the best
 submitted agent.
+
+## 2026-07-03 v3 leaderboard probe
+
+Submitted `lucario_public_sample_v3` after the confirmation direct gate against
+the active v1 candidate.
+
+| Field | Value |
+| --- | --- |
+| Submission ref | `54283898` |
+| Candidate | `lucario_public_sample_v3` |
+| Message | `lucario public sample v3` |
+| Package | `scratch/submission_packages/lucario_public_sample_v3/submission.tar.gz` |
+| Status | `SubmissionStatus.COMPLETE` |
+| Public score | `600.0` |
+
+Score table immediately after completion:
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `600.0` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `673.1` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Outcome: v3 validated successfully but did not improve the active v1 leaderboard
+score. The late-game deck-safety brake appears too conservative or too narrow
+for the public leaderboard mix, despite positive local head-to-head evidence.
+
