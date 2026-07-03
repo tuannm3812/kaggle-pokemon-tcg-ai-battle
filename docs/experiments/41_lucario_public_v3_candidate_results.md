@@ -69,6 +69,26 @@ python scripts/evaluate_direct_gate.py \
 | Wilson score CI | [0.4951, 0.7787] |
 | Failures | 0 |
 
+Confirmation direct gate versus active v1:
+
+```bash
+python scripts/evaluate_direct_gate.py \
+  --candidate lucario_public_sample_v3 \
+  --control lucario_public_sample_v1 \
+  --games-per-cell 5 \
+  --max-decisions 5000
+```
+
+| Metric | Value |
+| --- | ---: |
+| Result | 14-6 |
+| Score rate | 0.700 |
+| Wilson score CI | [0.5457, 0.8193] |
+| Failures | 0 |
+
+The confirmation run improved the direct-gate evidence and moved the Wilson CI
+lower bound above 0.50.
+
 Exact archetype suite:
 
 ```bash
@@ -124,8 +144,8 @@ Smoke result:
 
 ## Decision
 
-`lucario_public_sample_v3` is a plausible next submission candidate, but its
-case is weaker than the original v1 submission case.
+`lucario_public_sample_v3` is promoted from plausible candidate to next
+submission candidate after the confirmation direct gate.
 
 Reasons to submit:
 
@@ -139,8 +159,10 @@ Risks:
 - focused Abomasnow comparison tied v1 rather than clearly improving it;
 - exact-archetype aggregate (`0.5625`) is lower than the original v1 candidate
   aggregate observed before submission (`0.646`);
-- direct-gate CI low is just under the strict `0.50` threshold.
+- the first direct-gate CI was borderline before the confirmation run strengthened it.
 
-Recommendation: hold for one more confirmation run before submitting. If it
-again beats v1 head-to-head and keeps exact-archetype aggregate above parity,
-submit `lucario_public_sample_v3`.
+Recommendation: submit `lucario_public_sample_v3` as the next leaderboard probe
+if we want to test a small, targeted improvement over the current public Lucario
+submission. The main risk remains that the exact-archetype aggregate is lower
+than the original v1 pre-submit aggregate, so this should be treated as a
+controlled probe rather than a guaranteed improvement.
