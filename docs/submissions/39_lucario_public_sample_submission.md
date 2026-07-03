@@ -195,3 +195,24 @@ python -m kaggle competitions submissions pokemon-tcg-ai-battle
 Insight: v3 drifted down from the previous `742.0` snapshot, but it remains
 `+47.2` above v1 and `+141.5` above the older planner submission at this check.
 
+## 2026-07-03 v3 rebound score check
+
+A later refresh showed v3 rebounding after the previous drift-down snapshot.
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `730.3` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `652.1` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Decision note: continue waiting on v3 and do not submit v4 yet. v4 is locally
+interesting, but its confirmation gate against v3 was only `11-9` and included
+a `0-5` collapse in `seat_0_player_zero_first_true`.
+
