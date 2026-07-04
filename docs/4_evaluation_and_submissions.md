@@ -1,5 +1,14 @@
 # Evaluation and Submission Decisions
 
+## Current promotion anchor
+
+Current active best: `kojimar_simple_baseline_v1`.
+
+Future promotion gates should normally compare against this agent. Older agents
+such as `lucario_public_sample_v3`, `lucario_public_sample_v1`, and
+`planner_main_only_v1` remain useful regression controls, but they are no longer
+the main submission bar.
+
 ## Offline score
 
 For candidate-versus-control games, award 1 for a win, 0.5 for a draw, and 0
@@ -9,58 +18,97 @@ for a loss:
 score_rate = (wins + 0.5 * draws) / games
 ```
 
-Report a Wilson confidence interval on decisive-score indicators as a readable
-uncertainty summary. Because games are paired by seed and seat, also report
-pair-level outcomes and seat-specific rates. Bootstrap paired results when the
-sample is large enough.
+Report:
+
+- wins/draws/losses;
+- score rate;
+- Wilson confidence interval;
+- failures counted explicitly;
+- seat and first-player cell breakdown;
+- opponent/archetype labels when available.
 
 ## Evaluation tiers
 
-| Tier | Purpose | Suggested volume |
-| --- | --- | ---: |
-| Contract test | API legality and termination | 2–10 games |
-| Smoke comparison | Catch severe regressions | 20–50 paired games |
-| Candidate screen | Directional evidence | 100–300 paired games |
-| Promotion test | Submission decision | 500+ paired games across opponents |
+| Tier | Purpose | Typical command |
+| --- | --- | --- |
+| Contract/package smoke | API legality and termination | `python scripts/package_submission.py --candidate NAME --games 6` |
+| Direct gate | Candidate vs active best | `python scripts/evaluate_direct_gate.py --candidate NAME --control kojimar_simple_baseline_v1 --games-per-cell 5` |
+| Confirmation gate | Repeat direct gate with new seed | Add `--seed YYYYMMDD` |
+| Reliability gate | Catch crashes and random-control weakness | `--control official_random` |
+| Archetype suite | Check broad matchup coverage | `python scripts/evaluate_author_archetype_deck_suite.py --candidates NAME` |
+| Targeted matchup suite | Validate a specific patch | Build/use a matching frozen control, e.g. Crustle wall |
 
-Volumes are guidance, not magic thresholds. Increase them when effects are
-small, variance is high, or a submission slot is especially valuable.
+Small local gates are directional. Submit only when the evidence is strong enough
+for the available submission slot and the candidate package validates locally.
 
-## Opponent suite
+## Promotion decision rule
 
-Do not optimize only against the current baseline. Maintain frozen opponents:
+A candidate is ready for a leaderboard probe when it satisfies most of these:
 
-- official random sample;
-- deterministic baseline;
-- previous ladder champion;
-- attack-heavy and setup-heavy heuristic variants;
-- representative deck variants.
+- beats the active best in direct and confirmation gates;
+- has no validation/runtime failures;
+- does not collapse in any seat/first-player cell;
+- preserves or improves exact-archetype aggregate;
+- passes random-control reliability;
+- has a documented hypothesis and single main change;
+- package smoke test passes with `main.py`, `deck.csv`, and `cg/` at archive
+  root.
 
-Promote a candidate only if its aggregate improvement does not hide a critical
-matchup collapse or increased crash rate.
+A candidate should be held or rejected when:
+
+- direct evidence is near parity;
+- one cell collapses badly even if aggregate is positive;
+- the candidate only improves an unvalidated theoretical matchup;
+- public score is lower and local evidence was weak or contradictory.
 
 ## Ladder interpretation
 
-`mu` without `sigma` and episode count is incomplete. A new agent may move
-quickly because its uncertainty is high. Compare agents after adequate games,
-inspect episode logs, and avoid reacting to a short streak.
+Leaderboard scores are volatile because agents continue receiving matches.
+Important lessons from this project:
 
-## Submission gate
+- `lucario_public_sample_v3` initially completed around `600.0`, then drifted
+  above `700`.
+- `kojimar_simple_baseline_v1` initially completed at `600.0`, then drifted to
+  `861.4`.
 
-A candidate is ready only when:
+Therefore:
 
-- the package passes local structure checks;
-- self-play terminates without exceptions;
-- returned actions pass legality assertions;
-- paired evaluation beats the frozen control with acceptable uncertainty;
-- runtime and package size remain within live competition limits;
-- the exact deck and code hashes are recorded;
-- the expected benefit justifies replacing one of the latest two tracked
-  agents.
+1. Record the first completed score.
+2. Poll later before making a final keep/reject decision.
+3. Compare score drift with local gate evidence.
+4. Do not panic-submit a replacement after one low initial snapshot.
 
-## Post-submission review
+## Submission workflow
 
-Record validation status immediately. Later record `mu`, `sigma`, episode
-count, observed failures, and the keep/reject decision. Download logs for every
-error rather than resubmitting blindly. Use
-`docs/6_experiment_log.md` as the canonical ledger.
+1. Package locally:
+
+   ```powershell
+   python scripts/package_submission.py --candidate NAME --games 6 --max-decisions 2500
+   ```
+
+2. Submit:
+
+   ```powershell
+   python -m kaggle competitions submit -c pokemon-tcg-ai-battle -f scratch/submission_packages/NAME/submission.tar.gz -m "message"
+   ```
+
+3. Poll status:
+
+   ```powershell
+   python -m kaggle competitions submissions pokemon-tcg-ai-battle
+   ```
+
+4. Record in `docs/submissions/39_lucario_public_sample_submission.md`:
+
+   - ref;
+   - message;
+   - status;
+   - initial public score;
+   - later score drift;
+   - comparison against active best;
+   - keep/hold/reject decision.
+
+## Current score source of truth
+
+Use `docs/submissions/39_lucario_public_sample_submission.md` for chronological
+score tracking. Use `docs/README.md` for the latest high-level snapshot.

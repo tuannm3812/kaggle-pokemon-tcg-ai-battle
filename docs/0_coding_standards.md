@@ -2,10 +2,10 @@
 
 ## Scope
 
-This repository is notebook-first because the official execution target is
-Kaggle. Reusable policy code lives in `agent/`; notebooks orchestrate analysis,
-simulation, and packaging without hiding essential logic in an unmounted local
-module.
+This repository supports both Kaggle notebooks and local script-driven
+iteration. Stable Kaggle notebooks live under `notebooks/`; fast evaluator,
+packaging, and tracing workflows live under `scripts/`. Candidate agents live in
+`candidates/` as self-contained `main.py` plus `deck.csv` packages.
 
 ## Python
 

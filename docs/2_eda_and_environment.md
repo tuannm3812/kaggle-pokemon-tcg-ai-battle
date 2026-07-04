@@ -108,7 +108,7 @@ Every controlled game should retain:
 Across 120 completed sequencing games, development-first beat attack-first
 `37-0-3` and random `32-0-8`, with no simulator failures. At attack decisions it
 had more attached Energy and a larger Bench, supporting the interpretation that
-early development?not blind aggression?was the missing behavior.
+early development, not blind aggression, was the missing behavior.
 
 The remaining episode-EDA gap is opponent diversity and terminal-reason detail.
 Future evidence should include frozen stronger opponents or ladder replays,
