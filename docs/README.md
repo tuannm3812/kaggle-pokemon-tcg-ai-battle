@@ -2,47 +2,59 @@
 
 ## Current status
 
-Latest Kaggle status check on 2026-06-29:
+Latest tracked Kaggle score check: 2026-07-04.
 
 | Submission | Message | Status | Public score |
 | --- | --- | --- | ---: |
-| `54126975` | `planner main only v1` | `COMPLETE` | `493.9` |
-| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `484.0` |
+| `54303967` | `kojimar simple baseline v1` | `COMPLETE` | `861.4` |
+| `54283898` | `lucario public sample v3` | `COMPLETE` | `708.3` |
+| `54213861` | `lucario public sample v1` | `COMPLETE` | `662.0` |
+| `54126975` | `planner main only v1` | `COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `COMPLETE` | `496.7` |
 
-The latest submitted candidate is valid but is currently scoring above the
-previous accepted baseline, but the score has been volatile. Treat `planner_main_only_v1` as a useful experiment,
-not a confirmed ladder improvement.
+Current active best: `kojimar_simple_baseline_v1`.
 
-## Core docs
+## Start here
 
-| File | Purpose |
+| Need | File |
 | --- | --- |
-| [0_coding_standards.md](0_coding_standards.md) | Coding, notebook, evaluation, and commit standards |
-| [1_competition_instructions.md](1_competition_instructions.md) | Competition summary and constraints |
-| [2_eda_and_environment.md](2_eda_and_environment.md) | EDA/environment findings |
-| [3_agent_strategy.md](3_agent_strategy.md) | Current strategic framing |
-| [4_evaluation_and_submissions.md](4_evaluation_and_submissions.md) | Evaluation methodology |
-| [5_kaggle_runbook.md](5_kaggle_runbook.md) | Kaggle notebook and submission workflow |
-| [6_experiment_log.md](6_experiment_log.md) | High-level experiment ledger |
-| [7_competition_author_references.md](7_competition_author_references.md) | Notes from competition-author reference notebooks |
+| Coding and commit standards | [0_coding_standards.md](0_coding_standards.md) |
+| Competition rules and constraints | [1_competition_instructions.md](1_competition_instructions.md) |
+| EDA and environment findings | [2_eda_and_environment.md](2_eda_and_environment.md) |
+| Agent strategy | [3_agent_strategy.md](3_agent_strategy.md) |
+| Evaluation/submission methodology | [4_evaluation_and_submissions.md](4_evaluation_and_submissions.md) |
+| Kaggle workflow runbook | [5_kaggle_runbook.md](5_kaggle_runbook.md) |
+| High-level experiment ledger | [6_experiment_log.md](6_experiment_log.md) |
+| Competition-author reference notes | [7_competition_author_references.md](7_competition_author_references.md) |
 
-## Experiment evidence
+## Current high-value evidence
 
-Detailed experiment reports now live under [experiments/](experiments/).
-Start with:
+| File | Why it matters |
+| --- | --- |
+| [experiments/45_kojimar_simple_baseline_candidate_results.md](experiments/45_kojimar_simple_baseline_candidate_results.md) | Strongest current local candidate evidence; led to active best submission |
+| [submissions/39_lucario_public_sample_submission.md](submissions/39_lucario_public_sample_submission.md) | Chronological leaderboard/submission tracking, including v3 and Kojimar v1 drift |
+| [experiments/44_kojimar_insights_v7_crustle_guard.md](experiments/44_kojimar_insights_v7_crustle_guard.md) | Kojimar-inspired Crustle-guard attempt and why it stayed watchlist only |
+| [experiments/43_lucario_v5_v6_upgrade_attempts.md](experiments/43_lucario_v5_v6_upgrade_attempts.md) | Rejected safer Lucario-line pressure attempts |
+| [experiments/42_lucario_public_v4_watchlist_results.md](experiments/42_lucario_public_v4_watchlist_results.md) | v4 watchlist evidence and unstable weak-cell diagnosis |
+| [experiments/41_lucario_public_v3_candidate_results.md](experiments/41_lucario_public_v3_candidate_results.md) | Prior active-best v3 evidence and submission rationale |
 
-- [32_notebook_organization_plan.md](experiments/32_notebook_organization_plan.md)
-- [31_strict_promotion_gate_results.md](experiments/31_strict_promotion_gate_results.md)
-- [30_post_submission_ladder_risk_plan.md](experiments/30_post_submission_ladder_risk_plan.md)
-- [27_planner_ablation_results.md](experiments/27_planner_ablation_results.md)
-- [26_setup_active_ablation_results.md](experiments/26_setup_active_ablation_results.md)
-- [22_author_opponent_suite_results.md](experiments/22_author_opponent_suite_results.md)
+## Folder map
 
-## Submission evidence
+| Folder | Purpose | Notes |
+| --- | --- | --- |
+| `agent/` | Legacy/promoted local agent package | Keep stable; current submissions are tracked under `candidates/` and `scratch/submission_packages/` |
+| `candidates/` | Versioned candidate agents, each with `main.py` and `deck.csv` | See [../candidates/README.md](../candidates/README.md) |
+| `controls/` | Local opponent/control agents for gates | Small, reusable pressure-test policies |
+| `docs/experiments/` | Detailed experiment reports | Append-only evidence trail; do not delete old reports |
+| `docs/submissions/` | Submission/package/score tracking | Source of truth for leaderboard history |
+| `notebooks/` | Kaggle-runnable notebooks | Flat layout by design; see [../notebooks/README.md](../notebooks/README.md) |
+| `scripts/` | Local builders, evaluators, tracing, packaging | See [../scripts/README.md](../scripts/README.md) |
+| `scratch/` | Ignored runtime outputs, pulled references, packages, traces | Not committed; safe to regenerate selectively |
+| `data/` | Ignored competition/downloaded data | Keep out of Git |
+| `tmp/` | Ignored temporary local workspace | Keep out of Git |
 
-Submission/package reports now live under [submissions/](submissions/).
-Start with:
+## Maintenance rule
 
-- [29_planner_main_only_submission_result.md](submissions/29_planner_main_only_submission_result.md)
-- [28_planner_main_only_packaging_results.md](submissions/28_planner_main_only_packaging_results.md)
-- [17_competition_submission_log.md](submissions/17_competition_submission_log.md)
+Prefer adding a concise experiment note under `docs/experiments/` and a score
+note under `docs/submissions/` instead of editing old reports in place. Keep
+candidate folders stable because evaluation scripts reference them by name.
