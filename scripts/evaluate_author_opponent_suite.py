@@ -63,6 +63,9 @@ AGENT_PATHS = {
     "lucario_public_sample_v7": ROOT / "candidates" / "lucario_public_sample_v7" / "main.py",
     "kojimar_simple_baseline_v1": ROOT / "candidates" / "kojimar_simple_baseline_v1" / "main.py",
     "koushikrudra_libraryout_v1": ROOT / "candidates" / "koushikrudra_libraryout_v1" / "main.py",
+    "kojimar_simple_baseline_v2": ROOT / "candidates" / "kojimar_simple_baseline_v2" / "main.py",
+    "kojimar_simple_baseline_v3": ROOT / "candidates" / "kojimar_simple_baseline_v3" / "main.py",
+    "kojimar_simple_baseline_v4_second": ROOT / "candidates" / "kojimar_simple_baseline_v4_second" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
 

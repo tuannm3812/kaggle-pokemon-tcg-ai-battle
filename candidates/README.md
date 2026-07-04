@@ -15,6 +15,14 @@ updating the evaluator registry and experiment notes in the same commit.
 | --- | --- | --- |
 | `kojimar_simple_baseline_v1` | Active best submitted | Public score reached `861.4`; strongest local and leaderboard evidence so far |
 
+## Current Kojimar ablations
+
+| Candidate | Status | Main lesson |
+| --- | --- | --- |
+| `kojimar_simple_baseline_v4_second` | Rejected | Live-style go-second choice did not clearly beat v1 |
+| `kojimar_simple_baseline_v3` | Rejected | Anti-library-out target priority alone lost to v1 |
+| `kojimar_simple_baseline_v2` | Rejected | Broader anti-library-out patch did not survive deeper direct-control check |
+
 ## Important submitted candidates
 
 | Candidate | Status | Notes |
