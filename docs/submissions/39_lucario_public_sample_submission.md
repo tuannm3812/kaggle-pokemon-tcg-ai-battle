@@ -291,3 +291,24 @@ this check. The public score movement matches the local evidence: Kojimar v1
 beat v3 in two direct gates (`14-6`, `14-6`) and had a stronger exact-archetype
 profile, especially into Abomasnow.
 
+## 2026-07-04 Kojimar follow-up score check
+
+A later refresh showed Kojimar v1 continuing to improve.
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54303967` | `kojimar simple baseline v1` | `SubmissionStatus.COMPLETE` | `867.9` |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `722.5` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `662.0` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Decision note: keep Kojimar v1 as active best. New candidates should be tested
+locally against Kojimar v1 before any further submission.
+
