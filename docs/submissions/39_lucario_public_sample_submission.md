@@ -267,3 +267,27 @@ is below active v3. Continue tracking because v3 previously moved from `600.0`
 to much higher after additional matches, but do not treat Kojimar v1 as active
 best unless its score drifts above v3.
 
+## 2026-07-04 Kojimar score drift check
+
+A later refresh showed the Kojimar simple baseline submission drifting sharply
+upward and becoming the active best submitted agent.
+
+Checked with:
+
+```bash
+python -m kaggle competitions submissions pokemon-tcg-ai-battle
+```
+
+| Submission ref | Message | Status | Public score |
+| --- | --- | --- | ---: |
+| `54303967` | `kojimar simple baseline v1` | `SubmissionStatus.COMPLETE` | `861.4` |
+| `54283898` | `lucario public sample v3` | `SubmissionStatus.COMPLETE` | `708.3` |
+| `54213861` | `lucario public sample v1` | `SubmissionStatus.COMPLETE` | `662.0` |
+| `54126975` | `planner main only v1` | `SubmissionStatus.COMPLETE` | `560.3` |
+| `54100265` | `fix deck loader missing __file__` | `SubmissionStatus.COMPLETE` | `496.7` |
+
+Outcome: Kojimar v1 is now the active best submission, `+153.1` above v3 at
+this check. The public score movement matches the local evidence: Kojimar v1
+beat v3 in two direct gates (`14-6`, `14-6`) and had a stronger exact-archetype
+profile, especially into Abomasnow.
+
