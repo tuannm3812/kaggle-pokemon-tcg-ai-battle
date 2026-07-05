@@ -8,7 +8,8 @@
 | Kaggle reference | `54348833` |
 | Description | `kojimar v5 metal pressure` |
 | Submitted at | 2026-07-05 03:15:40 UTC |
-| Initial status | `PENDING` |
+| Final status | `COMPLETE` |
+| Public score | `600.0` |
 | Archive | `scratch/submission_packages/kojimar_simple_baseline_v5_metal_pressure/submission.tar.gz` |
 
 ## Baseline at submission time
@@ -28,10 +29,7 @@ leaderboard probe.
 
 ## Follow-up
 
-After validation completes:
+`54348833` completed with public score `600.0`, far below the active v1 score `879.9`.
 
-1. check whether `54348833` reaches `COMPLETE` or `ERROR`;
-2. compare public score to `879.9`;
-3. if complete, download/list episodes and compare Metal/Cinderace matchup
-   performance against the v1 episode baseline.
+Decision: reject v5 as a leaderboard candidate. The target-only Metal/Cinderace pressure looked plausible locally but did not transfer to the public leaderboard. Next work should inspect v5 episodes before making another target-priority patch.
 
