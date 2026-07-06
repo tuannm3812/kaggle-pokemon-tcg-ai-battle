@@ -68,3 +68,23 @@ alone. A next candidate should first demonstrate:
 2. a concrete hypothesis for one weak public archetype;
 3. no large regression to library-out/control.
 
+## Gate refinement after v10
+
+The v10 Phantump/Trevenant experiment exposed a false-positive risk in the
+compact public-meta gate. A two-games-per-cell screen can make even
+`kojimar_simple_baseline_v1` look weak in a self-reference cell, so absolute
+thresholds alone are too noisy.
+
+`scripts/evaluate_public_meta_gate.py` now runs a same-seed active-best reference
+beside every challenger/direct-control matchup and reports `delta_vs_reference`.
+A candidate can still be held for severe absolute failures, but the main signal
+is now whether it preserves or improves the active-best reference under the same
+seed/control conditions.
+
+Recommended flow:
+
+1. run the compact public-meta gate for a cheap challenger screen;
+2. inspect `relative_results` and reject candidates that trail v1 by more than
+   the configured `--min-reference-delta`;
+3. only run the slower deeper gates when the candidate is neutral or better
+   versus the same-seed reference.
