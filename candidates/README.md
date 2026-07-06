@@ -13,12 +13,13 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Notes |
 | --- | --- | --- |
-| `kojimar_simple_baseline_v1` | Active best submitted | Public score reached `861.4`; strongest local and leaderboard evidence so far |
+| `kojimar_simple_baseline_v1` | Active best submitted | Public score reached `864.5`; strongest local and leaderboard evidence so far |
 
 ## Current Kojimar ablations
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v10_phantump_pressure` | Rejected but informative | Phantump/Trevenant target pressure passed a compact public-meta screen but failed deeper active-best controls |
 | `kojimar_simple_baseline_v9_strict_boss_guard` | Rejected | Stricter Boss guard avoided generic Dunsparce trigger but failed active-best gate |
 | `kojimar_simple_baseline_v8_public_boss_guard` | Rejected but informative | Improved some public slices but scored below v1 and struggled into Dragapult/Phantump/Trevenant |
 | `kojimar_simple_baseline_v7_boss_ko_only` | Rejected | Broad KO-only Boss timing tied v1 but hurt library-out gate |
