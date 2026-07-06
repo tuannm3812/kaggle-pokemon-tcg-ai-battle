@@ -8,7 +8,8 @@
 | Kaggle reference | `54391951` |
 | Description | `kojimar v8 public boss guard` |
 | Submitted at | 2026-07-06 10:50:55 UTC |
-| Initial status | `PENDING` |
+| Final status | `COMPLETE` |
+| Public score | `600.0` |
 | Archive | `scratch/submission_packages/kojimar_simple_baseline_v8_public_boss_guard/submission.tar.gz` |
 
 ## Baseline at submission time
@@ -33,10 +34,7 @@ Package smoke passed before submission.
 
 ## Follow-up
 
-After validation:
+`54391951` completed with public score `600.0`, far below v1 at submission time (`864.5`).
 
-1. check `COMPLETE` or `ERROR`;
-2. compare public score to v1's `864.5`;
-3. if complete, download v8 episodes and inspect whether Metal/Cinderace and
-   Alakazam/Dunsparce loss rates improve without a broad control regression.
+Decision: reject v8 as a leaderboard candidate. The local direct signal did not transfer. Before another submission, inspect v8 episodes and improve the replay-derived validation gate.
 
