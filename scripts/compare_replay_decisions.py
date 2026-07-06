@@ -40,7 +40,9 @@ def load_policy(name: str) -> suite.Policy:
 
 
 def classify_archetype(deck: list[int]) -> str:
-    ids = set(deck)
+    """Map visible deck cards to a coarse opponent family."""
+    counts = Counter(deck)
+    ids = set(counts)
     if {169, 190, 666} & ids:
         return "metal_cinderace"
     if {741, 742, 743} & ids:
@@ -51,12 +53,14 @@ def classify_archetype(deck: list[int]) -> str:
         return "lucario"
     if {721, 722, 723} & ids:
         return "abomasnow"
-    if {667, 668, 669} & ids:
+    if {119, 120, 121} & ids:
         return "dragapult"
-    if {349, 350} & ids or {59, 60, 61} & ids:
+    if {878, 879} & ids:
         return "phantump_trevenant_control"
-    if {681, 682, 683} & ids:
+    if {646, 647, 648} & ids:
         return "grimmsnarl"
+    if {463, 891, 473, 474, 475} & ids:
+        return "rocket_honchkrow_porygon"
     if {385, 386, 387} & ids:
         return "iono"
     return "other"
