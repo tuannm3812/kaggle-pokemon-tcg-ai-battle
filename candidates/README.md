@@ -19,6 +19,8 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v8_public_boss_guard` | Next cautious submission candidate | Replay-informed Boss guard for Metal/Cinderace and Alakazam/Dunsparce; package smoke passed |
+| `kojimar_simple_baseline_v7_boss_ko_only` | Rejected | Broad KO-only Boss timing tied v1 but hurt library-out gate |
 | `kojimar_simple_baseline_v6_alakazam_pressure` | Rejected | Alakazam/Dunsparce target pressure did not beat v1 and hurt library-out gate |
 | `kojimar_simple_baseline_v6_metal_conditional` | Rejected | Narrower Metal/Cinderace pressure beat v5 locally but not v1 |
 | `kojimar_simple_baseline_v6_meta_pressure` | Rejected | Combined Metal and Alakazam pressure failed active-best gate |

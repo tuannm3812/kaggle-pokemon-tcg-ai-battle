@@ -69,6 +69,8 @@ AGENT_PATHS = {
     "kojimar_simple_baseline_v5_metal_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v5_metal_pressure" / "main.py",
     "kojimar_simple_baseline_v6_metal_conditional": ROOT / "candidates" / "kojimar_simple_baseline_v6_metal_conditional" / "main.py",
     "kojimar_simple_baseline_v6_alakazam_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v6_alakazam_pressure" / "main.py",
+    "kojimar_simple_baseline_v7_boss_ko_only": ROOT / "candidates" / "kojimar_simple_baseline_v7_boss_ko_only" / "main.py",
+    "kojimar_simple_baseline_v8_public_boss_guard": ROOT / "candidates" / "kojimar_simple_baseline_v8_public_boss_guard" / "main.py",
     "kojimar_simple_baseline_v6_meta_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v6_meta_pressure" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
