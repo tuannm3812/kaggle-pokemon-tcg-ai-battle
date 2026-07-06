@@ -19,6 +19,9 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v6_alakazam_pressure` | Rejected | Alakazam/Dunsparce target pressure did not beat v1 and hurt library-out gate |
+| `kojimar_simple_baseline_v6_metal_conditional` | Rejected | Narrower Metal/Cinderace pressure beat v5 locally but not v1 |
+| `kojimar_simple_baseline_v6_meta_pressure` | Rejected | Combined Metal and Alakazam pressure failed active-best gate |
 | `kojimar_simple_baseline_v5_metal_pressure` | Rejected but informative | Improved Metal/Cinderace public episodes, but public score stayed below v1 and control weaknesses remained |
 | `kojimar_simple_baseline_v4_second` | Rejected | Live-style go-second choice did not clearly beat v1 |
 | `kojimar_simple_baseline_v3` | Rejected | Anti-library-out target priority alone lost to v1 |
