@@ -37,6 +37,8 @@ def run_unforced_game(
     from cg.api import SelectContext, to_observation_class
     from cg.game import battle_select, battle_start
 
+    suite.reset_policy_state(candidate)
+    suite.reset_policy_state(opponent)
     random.seed(seed)
     try:
         import numpy as np

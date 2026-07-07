@@ -19,6 +19,7 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v14_v8_prefer_second` | Rejected but informative | Always choosing second addressed the observed went-first loss pattern too bluntly and failed unforced controls |
 | `kojimar_simple_baseline_v13_v8_dragapult_pressure` | Rejected but informative | v8 plus Dragapult target pressure improved author Dragapult but still trailed v1/v8/Lucario gate cells |
 | `kojimar_simple_baseline_v12_dragapult_pressure` | Rejected | v1 plus Dragapult pressure was target-positive but regressed v5/Lucario controls |
 | `kojimar_simple_baseline_v11_metal_boss_guard` | Rejected | Metal-only Boss guard did not clear the same-seed reference gate |
