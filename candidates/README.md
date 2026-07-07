@@ -19,6 +19,12 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v21_midgame_ko_attack_enable` | Hold / not submitted | KO-only version of v20; safer conceptually but still failed public-meta gate protected cells |
+| `kojimar_simple_baseline_v20_midgame_attack_enable` | Hold / not submitted | Midgame attack-ordering patch; improved random/library-out in quick gate but regressed active-best and v8 controls |
+| `kojimar_simple_baseline_v19_active_threat_finish_pressure` | Hold / not submitted | Active-only finish-pressure patch; safe on Lucario/library-out quick gate but did not improve v5/v8 pressure controls |
+| `kojimar_simple_baseline_v18_midgame_finish_pressure` | Hold / not submitted | Strategy-EDA midgame conversion patch; protected Lucario in quick gate but did not improve v5/v8 pressure controls and underperformed mirror/random reference cells |
+| `kojimar_simple_baseline_v17_setup_riolu_pressure` | Rejected | Setup-active Riolu pressure looked plausible from loss replays but regressed v5/Lucario/library-out gates |
+| `kojimar_simple_baseline_v16_meta_target_guard` | Hold / not submitted | Conservative v1 target-only meta patch; quick gate gained vs v8/random but flagged Lucario v3 regression, so needs replay-level proof before submission |
 | `kojimar_simple_baseline_v15_lucario_tempo` | Rejected | Lucario-line tempo routing was too coarse and regressed v5/Lucario controls without improving author Dragapult |
 | `kojimar_simple_baseline_v14_v8_prefer_second` | Rejected but informative | Always choosing second addressed the observed went-first loss pattern too bluntly and failed unforced controls |
 | `kojimar_simple_baseline_v13_v8_dragapult_pressure` | Rejected but informative | v8 plus Dragapult target pressure improved author Dragapult but still trailed v1/v8/Lucario gate cells |

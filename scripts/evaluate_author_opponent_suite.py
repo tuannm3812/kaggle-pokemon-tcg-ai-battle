@@ -78,6 +78,12 @@ AGENT_PATHS = {
     "kojimar_simple_baseline_v13_v8_dragapult_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v13_v8_dragapult_pressure" / "main.py",
     "kojimar_simple_baseline_v14_v8_prefer_second": ROOT / "candidates" / "kojimar_simple_baseline_v14_v8_prefer_second" / "main.py",
     "kojimar_simple_baseline_v15_lucario_tempo": ROOT / "candidates" / "kojimar_simple_baseline_v15_lucario_tempo" / "main.py",
+    "kojimar_simple_baseline_v16_meta_target_guard": ROOT / "candidates" / "kojimar_simple_baseline_v16_meta_target_guard" / "main.py",
+    "kojimar_simple_baseline_v17_setup_riolu_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v17_setup_riolu_pressure" / "main.py",
+    "kojimar_simple_baseline_v18_midgame_finish_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v18_midgame_finish_pressure" / "main.py",
+    "kojimar_simple_baseline_v19_active_threat_finish_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v19_active_threat_finish_pressure" / "main.py",
+    "kojimar_simple_baseline_v20_midgame_attack_enable": ROOT / "candidates" / "kojimar_simple_baseline_v20_midgame_attack_enable" / "main.py",
+    "kojimar_simple_baseline_v21_midgame_ko_attack_enable": ROOT / "candidates" / "kojimar_simple_baseline_v21_midgame_ko_attack_enable" / "main.py",
     "kojimar_simple_baseline_v6_meta_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v6_meta_pressure" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }

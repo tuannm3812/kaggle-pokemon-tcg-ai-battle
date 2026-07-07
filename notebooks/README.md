@@ -7,11 +7,17 @@ are updated in the same commit.
 
 ## Active workflow notebooks
 
-These are the notebooks to use for a fresh Kaggle workflow.
+These are the notebooks to use for a fresh Kaggle workflow. The static card/deck
+EDA remains notebook-first; live public-meta and replay-loss EDA should be run
+through `scripts/analyze_submission_episodes.py`,
+`scripts/diagnose_public_loss_replays.py`, and
+`scripts/evaluate_public_meta_gate.py`, then summarized in `docs/experiments/`.
+This keeps Kaggle notebooks stable while fast strategy iteration happens in
+local scripts.
 
 | Notebook | Status | Purpose |
 | --- | --- | --- |
-| `01_card_database_eda.ipynb` | Active | Card catalogue, deck constraints, and early EDA |
+| `01_card_database_eda.ipynb` | Active | Card catalogue, deck constraints, and static starter-deck EDA |
 | `02_agent_baseline_and_local_evaluation.ipynb` | Active | Baseline contract checks and random-control screen |
 | `03_submission_packaging_and_validation.ipynb` | Active | Kaggle-style packaging and validation |
 
@@ -37,6 +43,15 @@ new quick iteration should usually happen in `scripts/` first.
 Kaggle kernel metadata lives in `notebooks/metadata/`. Each metadata file has a
 `code_file` field that points to one notebook filename at this directory root.
 That is why the physical notebook layout stays flat.
+
+## Strategy EDA handoff
+
+The current candidate workflow is:
+
+1. Use `01_card_database_eda.ipynb` for static card/deck understanding.
+2. Use public episode scripts for live meta frequency, weak archetypes, and loss timing.
+3. Write candidate briefs in `docs/2_eda_and_environment.md` and `docs/experiments/` before coding a new agent.
+4. Promote a candidate only after the public-meta gate avoids protected-matchup regressions.
 
 ## Maintenance rule
 

@@ -16,6 +16,10 @@ Kaggle notebooks only when a workflow needs to run on Kaggle.
 | `analyze_submission_episodes.py` | Analyze downloaded public episode replays by archetype |
 | `build_public_meta_fixtures.py` | Build replay-derived public meta fixture JSON from episode summaries |
 | `evaluate_public_meta_gate.py` | Conservative challenger gate combining local controls with public-meta fixtures |
+| `diagnose_public_loss_replays.py` | Diagnose public leaderboard loss replays by archetype |
+| `strategy_eda_from_loss_diagnostics.py` | Converts public loss diagnostics into midgame strategy EDA for candidate briefs |
+| `compare_midgame_decision_deltas.py` | Focused candidate-vs-reference comparison for filtered public-loss midgame states |
+| `analyze_finish_pressure_opportunities.py` | No-SDK diagnostic for whether finish-pressure patches have public-loss opportunities |
 
 ## Notebook builders and historical experiment scripts
 
