@@ -13,6 +13,7 @@ Kaggle notebooks only when a workflow needs to run on Kaggle.
 | `evaluate_promotion_gate.py` | Older promotion-gate runner retained for reproducibility |
 | `package_submission.py` | Build `submission.tar.gz` and run package smoke tests |
 | `trace_author_decisions.py` | Decision tracing for matchup diagnosis |
+| `download_submission_episodes.py` | Download public Kaggle episode replay JSONs for one submission |
 | `analyze_submission_episodes.py` | Analyze downloaded public episode replays by archetype |
 | `build_public_meta_fixtures.py` | Build replay-derived public meta fixture JSON from episode summaries |
 | `evaluate_public_meta_gate.py` | Conservative challenger gate combining local controls with public-meta fixtures |
