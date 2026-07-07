@@ -73,6 +73,9 @@ AGENT_PATHS = {
     "kojimar_simple_baseline_v8_public_boss_guard": ROOT / "candidates" / "kojimar_simple_baseline_v8_public_boss_guard" / "main.py",
     "kojimar_simple_baseline_v9_strict_boss_guard": ROOT / "candidates" / "kojimar_simple_baseline_v9_strict_boss_guard" / "main.py",
     "kojimar_simple_baseline_v10_phantump_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v10_phantump_pressure" / "main.py",
+    "kojimar_simple_baseline_v11_metal_boss_guard": ROOT / "candidates" / "kojimar_simple_baseline_v11_metal_boss_guard" / "main.py",
+    "kojimar_simple_baseline_v12_dragapult_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v12_dragapult_pressure" / "main.py",
+    "kojimar_simple_baseline_v13_v8_dragapult_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v13_v8_dragapult_pressure" / "main.py",
     "kojimar_simple_baseline_v6_meta_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v6_meta_pressure" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
@@ -90,6 +93,25 @@ class Policy:
     name: str
     agent: Callable[[dict[str, Any]], list[int]]
     deck: list[int]
+
+
+def reset_policy_state(policy: Policy) -> None:
+    """Reset common module-level agent state before a new local game.
+
+    Kaggle episode workers start agents from a clean process, but this local
+    evaluator reuses imported modules across many batched games. Several sample
+    agents keep turn-level globals such as ``pre_turn``, ``ability_used``, and
+    ``plan``. Resetting them before every game keeps local gates from measuring
+    cross-game residue.
+    """
+    namespace = getattr(policy.agent, "__globals__", {})
+    if "pre_turn" in namespace:
+        namespace["pre_turn"] = -1
+    if "ability_used" in namespace:
+        namespace["ability_used"] = False
+    attack_plan = namespace.get("AttackPlan")
+    if "plan" in namespace and callable(attack_plan):
+        namespace["plan"] = attack_plan()
 
 
 def find_sdk_dir() -> Path:
@@ -228,6 +250,8 @@ def run_game(
     from cg.api import to_observation_class
     from cg.game import battle_select, battle_start
 
+    reset_policy_state(candidate)
+    reset_policy_state(opponent)
     random.seed(seed)
     try:
         import numpy as np

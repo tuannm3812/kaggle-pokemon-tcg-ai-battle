@@ -13,12 +13,15 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Notes |
 | --- | --- | --- |
-| `kojimar_simple_baseline_v1` | Active best submitted | Public score reached `864.5`; strongest local and leaderboard evidence so far |
+| `kojimar_simple_baseline_v1` | Active best submitted | Public score remains `864.5` as of 2026-07-07; strongest local and leaderboard evidence so far |
 
 ## Current Kojimar ablations
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v13_v8_dragapult_pressure` | Rejected but informative | v8 plus Dragapult target pressure improved author Dragapult but still trailed v1/v8/Lucario gate cells |
+| `kojimar_simple_baseline_v12_dragapult_pressure` | Rejected | v1 plus Dragapult pressure was target-positive but regressed v5/Lucario controls |
+| `kojimar_simple_baseline_v11_metal_boss_guard` | Rejected | Metal-only Boss guard did not clear the same-seed reference gate |
 | `kojimar_simple_baseline_v10_phantump_pressure` | Rejected but informative | Phantump/Trevenant target pressure passed a compact public-meta screen but failed deeper active-best controls |
 | `kojimar_simple_baseline_v9_strict_boss_guard` | Rejected | Stricter Boss guard avoided generic Dunsparce trigger but failed active-best gate |
 | `kojimar_simple_baseline_v8_public_boss_guard` | Rejected but informative | Improved some public slices but scored below v1 and struggled into Dragapult/Phantump/Trevenant |
