@@ -19,6 +19,7 @@ updating the evaluator registry and experiment notes in the same commit.
 
 | Candidate | Status | Main lesson |
 | --- | --- | --- |
+| `kojimar_simple_baseline_v22_midgame_metal_boss_guard` | Hold / not submitted | Stricter midgame Metal/Cinderace Boss guard; helped v5/library-out cells but failed active-best/Lucario/random gate checks |
 | `kojimar_simple_baseline_v21_midgame_ko_attack_enable` | Hold / not submitted | KO-only version of v20; safer conceptually but still failed public-meta gate protected cells |
 | `kojimar_simple_baseline_v20_midgame_attack_enable` | Hold / not submitted | Midgame attack-ordering patch; improved random/library-out in quick gate but regressed active-best and v8 controls |
 | `kojimar_simple_baseline_v19_active_threat_finish_pressure` | Hold / not submitted | Active-only finish-pressure patch; safe on Lucario/library-out quick gate but did not improve v5/v8 pressure controls |
