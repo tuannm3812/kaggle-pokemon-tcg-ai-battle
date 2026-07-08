@@ -4,7 +4,7 @@
 
 Current active best submitted agent: `kojimar_simple_baseline_v1`.
 
-Latest tracked public score: `861.4` on 2026-07-04.
+Latest tracked public score: `864.5` on 2026-07-08.
 
 High-level progression:
 
@@ -12,10 +12,15 @@ High-level progression:
 | --- | --- | --- |
 | Starter/planner baseline | `planner_main_only_v1` | Valid but low public score; useful simulator learning phase |
 | Public Lucario sample | `lucario_public_sample_v3` | Became first strong submitted agent; reached scores above `700` |
-| Kojimar simple baseline | `kojimar_simple_baseline_v1` | Current active best; reached `861.4` |
+| Kojimar simple baseline | `kojimar_simple_baseline_v1` | Current active best; reached `864.5` |
+| Public meta replay mining | v5 / v8 / v16-v22 | Found useful Metal/Cinderace and library-out signals, but no submit-ready candidate above v1 |
 
 Recent high-value experiment reports:
 
+- [experiments/75_v8_dragapult_phantump_replay_delta.md](experiments/75_v8_dragapult_phantump_replay_delta.md)
+- [experiments/74_opening_category_cross_branch_insights.md](experiments/74_opening_category_cross_branch_insights.md)
+- [experiments/73_cross_submission_meta_insights.md](experiments/73_cross_submission_meta_insights.md)
+- [experiments/72_v22_midgame_metal_boss_guard_results.md](experiments/72_v22_midgame_metal_boss_guard_results.md)
 - [experiments/45_kojimar_simple_baseline_candidate_results.md](experiments/45_kojimar_simple_baseline_candidate_results.md)
 - [experiments/44_kojimar_insights_v7_crustle_guard.md](experiments/44_kojimar_insights_v7_crustle_guard.md)
 - [experiments/43_lucario_v5_v6_upgrade_attempts.md](experiments/43_lucario_v5_v6_upgrade_attempts.md)
