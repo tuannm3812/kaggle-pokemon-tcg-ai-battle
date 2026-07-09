@@ -17,6 +17,7 @@ High-level progression:
 
 Recent high-value experiment reports:
 
+- [experiments/76_v23_v24_phantump_control_results.md](experiments/76_v23_v24_phantump_control_results.md)
 - [experiments/75_v8_dragapult_phantump_replay_delta.md](experiments/75_v8_dragapult_phantump_replay_delta.md)
 - [experiments/74_opening_category_cross_branch_insights.md](experiments/74_opening_category_cross_branch_insights.md)
 - [experiments/73_cross_submission_meta_insights.md](experiments/73_cross_submission_meta_insights.md)
