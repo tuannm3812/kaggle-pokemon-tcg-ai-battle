@@ -87,6 +87,7 @@ AGENT_PATHS = {
     "kojimar_simple_baseline_v22_midgame_metal_boss_guard": ROOT / "candidates" / "kojimar_simple_baseline_v22_midgame_metal_boss_guard" / "main.py",
     "kojimar_simple_baseline_v23_phantump_ko_boss_guard": ROOT / "candidates" / "kojimar_simple_baseline_v23_phantump_ko_boss_guard" / "main.py",
     "kojimar_simple_baseline_v24_phantump_ko_target_bonus": ROOT / "candidates" / "kojimar_simple_baseline_v24_phantump_ko_target_bonus" / "main.py",
+    "kojimar_simple_baseline_v25_phantump_finish_now": ROOT / "candidates" / "kojimar_simple_baseline_v25_phantump_finish_now" / "main.py",
     "kojimar_simple_baseline_v6_meta_pressure": ROOT / "candidates" / "kojimar_simple_baseline_v6_meta_pressure" / "main.py",
     "anti_planner_pressure_v1": ROOT / "controls" / "anti_planner_pressure_v1" / "main.py",
 }
